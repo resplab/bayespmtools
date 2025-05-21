@@ -1,6 +1,5 @@
 
 logit <- function(x) {log(x/(1-x))}
-
 expit <- function(x) {1/(1+exp(-x))}
 
 
@@ -116,7 +115,8 @@ inv_mean_quantile <- function(type, m, q, p)
   }
   if(type=="probitnorm") #TODO
   {
-    #TODO
+    # res <- uniroot(function(x) {mcmapper:::pprobitnorm(q,x,x*(1-m)/m)-p}, interval=c(0.0001,10000))
+    # out <- c(shape1=res$root, shape2=res$root*(1-m)/m)
   }
   if(type=="norm")
   {
@@ -229,7 +229,7 @@ infer_cal_int_from_oe <- function(dist_type, dist_parms, cal_oe, cal_slp, prev=N
 
 
 #'@export
-calc_se_sp <- function(dist_type, dist_parms, cal_int, cal_slp, threshold, prev=NULL)
+calc_se_sp <- function(dist_type, dist_parms, cal_int, cal_slp, threshold, prev) #TODO: prev should be optional
 {
 
   hz <- expit(logit(threshold)*cal_slp+cal_int)
@@ -340,17 +340,19 @@ calc_riley_vars <- function(N, parms)
   }
   if(dist_type=="beta")
   {
-    E_pi <- integrate(function(x){x*dbeta(expit(logit(x)*cal_slp+cal_int),dist_parms[1],dist_parms[2])}, 0, 1,intercept=cal_int, slope=cal_slp)$value
-    I_a <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*(exp(cal_int+x*cal_slp)/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
-    I_b <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x^2*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
-    I_ab <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+    tryCatch({
+    E_pi <- integrate(function(x){dbeta(x,dist_parms[1],dist_parms[2])*(expit((logit(x)-cal_int)/cal_slp))},0,1)$value
+    I_a <- integrate(function(x){ dbeta(x,dist_parms[1],dist_parms[2])*(x*(1-x))}, 0, 1)$value
+    I_b <- integrate(function(x){ dbeta(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
+    I_ab <- integrate(function(x){dbeta(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)*(x*(1-x)))}, 0, 1)$value
+    }, error=function(e){bad_place$parms <<- parms})
   }
   if(dist_type=="probitnorm")
   {
-    E_pi <- integrate(function(x){x*mcmapper::dprobitnorm(expit(logit(x)*cal_slp+cal_int),dist_parms[1],dist_parms[2])}, 0, 1,intercept=cal_int, slope=cal_slp)$value
-    I_a <- integrate(function(x){mcmapper::dprobitnorm(expit(logit(x)), dist_parms[1], dist_parms[2])*(exp(cal_int+x*cal_slp)/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
-    I_b <- integrate(function(x){mcmapper::dprobitnorm(expit(logit(x)), dist_parms[1], dist_parms[2])*((x^2*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
-    I_ab <- integrate(function(x){mcmapper::dprobitnorm(expit(logit(x)), dist_parms[1], dist_parms[2])*((x*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+    E_pi <- integrate(function(x){mcmapper::dprobitnorm(x,dist_parms[1],dist_parms[2])*(expit((logit(x)-cal_int)/cal_slp))},0,1)$value
+    I_a <- integrate(function(x){mcmapper::dprobitnorm(x,dist_parms[1],dist_parms[2])*(x*(1-x))}, 0, 1)$value
+    I_b <- integrate(function(x){mcmapper::dprobitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
+    I_ab <- integrate(function(x){mcmapper::dprobitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)*(x*(1-x)))}, 0, 1)$value
   }
 
   v_prev <- prev*(1-prev)/N

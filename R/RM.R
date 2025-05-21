@@ -1,4 +1,4 @@
-
+#Implementation of multi-target Robbins-Monro's stochastic root finding algorithm
 find_n_RM <- function(sample, target_rules, target_metrics, target_values, N0=1000, base_parms=NULL)
 {
   n <- length(target_rules)
@@ -14,7 +14,7 @@ find_n_RM <- function(sample, target_rules, target_metrics, target_values, N0=10
     base_parms$cal_int <- mean(sample$cal_int)
   }
 
-  base_ciws <- bayescpm:::calc_ciw_2s(N0, base_parms)
+  base_ciws <- calc_ciw_2s(N0, base_parms)
   working_Ns <- rep(N0,n)
   names(working_Ns) <- paste0(target_rules, ".", target_metrics)
   for(i in 1:n)
@@ -31,7 +31,7 @@ find_n_RM <- function(sample, target_rules, target_metrics, target_values, N0=10
 
   for(i in 1:n_sim)
   {
-    y <- bayescpm:::calc_ciw_sample(round(working_Ns,0), sample[i,])
+    y <- calc_ciw_sample(round(working_Ns,0), sample[i,])
     
     for(j in 1:n)
     {
