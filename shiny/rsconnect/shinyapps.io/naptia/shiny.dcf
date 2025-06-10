@@ -1,0 +1,12 @@
+name: shiny
+title: shiny
+username: naptia
+account: naptia
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13857215
+bundleId: 9723732
+url: https://naptia.shinyapps.io/shiny/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
