@@ -2,16 +2,16 @@ Package: bayespmtools
 Title: Bayesian approach to clinical prediction model's development and validation
 Version: 0.0.0.9000
 Authors@R: 
-    person("Mohsen", "Sadatsafavi", , "mohsen.sadatsafavi@ubc.ca", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-0419-7862"))
+    c(person(given="Mohsen", family="Sadatsafavi", email="mohsen.sadatsafavi@ubc.ca", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0419-7862")), 
+      person(given="Anna", family="Luo", email="annaluo@student.ubc.ca", role="ctb"))
 Description: BAyesian power, sample size, and value-analysis calcualtor for risk prediction models.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends: 
     R (>= 2.10)
 Imports:
-    fastLogisticRegressionWrap, logitnorm, mc2d, mcmapper, pROC, cobs
+    fastLogisticRegressionWrap, logitnorm, mc2d, mcmapper, pROC, cobs, OOR, quantreg
 LazyData: true

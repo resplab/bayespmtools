@@ -1,4 +1,40 @@
-#' @export
+#'Bayesian Sample Size Calculator
+#'
+#'@description Bayesian sample size calculation for external validation studies of risk prediction models
+#'@param evidence A named list with prior evidence elements
+#'@param targets 
+#'  assurance.nb: Boolean value for Net benefit assurance
+#'  voi.nb: Boolean value for Value of Information for net benefit
+#'@param n_sim Number of simulations
+#'@param method Method to calculate pre-posterior distribution of 95% confidence intervals. One of "sample", "2s"; default is "sample"
+#'@param threshold Threshold used for decision rules and NB calculations. Required if `voi.nb` or `assurance.nb` are requested.
+#'@param dist_type Distribution for calibrated risks; default is "logitnorm"
+#'@param impute_cor Boolean value to induce correlation. Default is True
+#'@param ex_args List of extra arguments.
+#'@return A list containing:
+#'  N: Estimated sample sizes needed to meet the targets.
+#'  sample: Data frame of simulated samples
+#'  evidence: Processed evidence object
+#'  trace: Trace output from stochastic root finding method
+#'@examples 
+#' evidence <- list(
+#'   prev = list(type = "beta", mean = 0.4, sd = 0.02),        
+#'   cstat = list(mean = 0.75, sd = 0.03),                    
+#'   cal_mean = list(mean = 0, sd = 0.1),                      
+#'   cal_slp = list(mean = 1, sd = 0.1)                       
+#' )
+#'
+#' targets <- list(
+#'   eciw.cstat = 0.05,     
+#'   assurance.nb = 0.8       
+#'
+#' bpm_valsamp(
+#'   evidence = evidence,
+#'   targets = targets,
+#'   n_sim = 200,
+#'   threshold = 0.25
+#' )
+#'@export
 bpm_valsamp <- function(evidence,
                      targets,
                      n_sim, 
@@ -207,8 +243,8 @@ bpm_valsamp <- function(evidence,
       }
     }
     
-    require(OOR)
-    res <- StoSOO(c(1000), f, lower=100, upper=10^5, nb_iter=1000)
+    # require(OOR)
+    res <- OOR::StoSOO(c(1000), f, lower=100, upper=10^5, nb_iter=1000)
     
     out$N <- unlist(c(out$N, assurance.nb=round(res$par)))
   }
