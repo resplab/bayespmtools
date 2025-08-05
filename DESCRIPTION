@@ -15,3 +15,7 @@ Depends:
 Imports:
     fastLogisticRegressionWrap, logitnorm, mc2d, mcmapper, pROC, cobs, OOR, quantreg
 LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

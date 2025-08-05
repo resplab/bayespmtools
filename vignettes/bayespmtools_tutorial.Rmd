@@ -1,0 +1,112 @@
+---
+title: "Bayespmtools Package Tutorial"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{bayespmtools_tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bayespmtools)
+```
+
+## Introduction
+
+Current sample size calculations for external risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels, which makes it difficult to represent a complete picture.
+
+Using the Bayesian framework for multi-criteria sample size considerations for prediction models for binary outcomes allows researchers to have more flexibility for sample size rules based on expected precision, assurance probabilities, and VoI.
+
+### ISARIC Model
+
+We will be working on a data set from the International Severe Acute Respiratory and emerging Infection Consortium (ISARIC). This data set contains information from electronic hospital records from all 9 health regions of the UK.
+
+The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 in UK @gupta2021isaric. London was left out for external validation while the other 8 regions were used in creating the model. For the continuation of our tutorial we assume that London was left out in this study, and the performance of the model in the London region will be a random draw from the distribution of performance observed across the other 8 regions of the UK.
+
+### Computing Evidence and Specifying Targets
+
+The values in the evidence are extracted from meta-analysis of the original report for the ISARIC 4C model, which produced these values based on predictive distribution of the internal-external validation results.
+
+Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3
+
+```{r set-seed}
+set.seed(123)
+```
+
+```{r load-evidence}
+evidence <- list(prev=list(type="beta", mean=0.427966984132821, sd=0.0295397309129426),
+                 cstat=list(type="logitnorm", mean=0.760628336908955, sd=0.00635806041351944),
+                 cal_mean=list(type="norm", mean=-0.00934717199436785, sd=0.124517605045825),
+                 cal_slp=list(type="norm", mean=0.995017759715243, sd = 0.0237278675967507))
+```
+
+```{r targets-samp}
+targets_samp <- list(eciw.cstat=0.1,
+                eciw.cal_oe=0.22,
+                eciw.cal_slp=0.30,
+                qciw.cstat=c(0.1, 0.9),
+                qciw.cal_oe=c(0.22, 0.9),
+                qciw.cal_slp=c(0.30,0.9),
+                assurance.nb=0.9)
+```
+
+### bpm_valsamp
+
+This is the main function call that computes the sample size requirements based on our evidence and targets. It returns the required sample size for external validation for each parameter requested in the targets.
+
+```{r bpm_valsamp}
+res <- bpm_valsamp(evidence=evidence, #Evidence as a list
+                   dist_type="logitnorm", #Distribution type for calibrated risks
+                   method="sample", #Sample based or tw-level ("2s") method
+                   targets=targets_samp, #Targets (as specified above)
+                   n_sim=10000, #Number of Monte Carlo simulations
+                   threshold=0.2) #Risk threshold for NB VoI calculations
+```
+
+```{r print-samp-results}
+#Print results
+print(res$N)
+```
+
+### bpm_valprec
+
+This function returns the parameter values based on the given sample sizes and targets. It works as an inverse to the bpm_valsamp function.
+
+For this example, we will be using the outputs from bpm_valsamp to show that the output of bpm_valprec will return the input of the bpm_valsamp. We use the same evidence element defined earlier, and create a new target element target_prec, that contains the same parameters target_samp but defined as T for present eciw targets, or 0.9 for present qciw targets.
+
+The N_prec variable includes the output sample sizes from bpm_valsamp.
+
+```{r}
+N_prec = c(351, 430, 1064, 399, 522, 1181, 306)
+
+targets_prec = list(eciw.cstat = T, eciw.cal_oe = T, eciw.cal_slp = T, qciw.cstat = 0.9, qciw.cal_oe = 0.9, qciw.cal_slp = 0.9, assurance.nb=T)
+
+prec <- bpm_valprec(
+  N = N_prec, #Sample sizes
+  evidence = evidence, #Evidence as a list
+  dist_type="logitnorm", #Distribution type for calibrated risks
+  method="sample", #Sample based or tw-level ("2s") method
+  targets = targets_prec, #Targets specified above
+  n_sim = 1000, #Number of Monte Carlo simulations
+  threshold=0.2) #Risk threshold for NB VoI calculations)
+
+```
+
+```{r}
+#print results
+print(prec$eciw)
+
+print(prec$qciw)
+
+print(prec$assurance)
+```
+
+### References
