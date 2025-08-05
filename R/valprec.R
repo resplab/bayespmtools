@@ -203,7 +203,7 @@ bpm_valprec <- function(N, evidence, targets=list(fciw.cstat=T, fciw.cal_slp=T, 
       }
       if(target_rules[bciws[i]]=="qciw")
       {
-        out$qciw[[target_metrics[bciws[i]]]] <- apply(ciws[[target_metrics[bciws[i]]]], 2, quantile, target_values[[bciws[i]]][2])
+        out$qciw[[target_metrics[bciws[i]]]] <- apply(ciws[[target_metrics[bciws[i]]]], 2, quantile, target_values[[bciws[i]]][1])
       }
     }
     
