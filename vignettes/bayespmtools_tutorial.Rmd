@@ -111,6 +111,8 @@ prec <- bpm_valprec(
 
 ```
 
+<Write something about the compatibility of results?>
+
 ```{r}
 #print results
 print(prec$eciw)
