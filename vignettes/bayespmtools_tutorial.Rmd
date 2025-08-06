@@ -21,21 +21,29 @@ library(bayespmtools)
 
 ## Introduction
 
-Current sample size calculations for external risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels, which makes it difficult to represent a complete picture.
+Current sample size calculations for external validation of risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels, which makes it difficult to represent a complete picture.
 
-Using the Bayesian framework for multi-criteria sample size considerations for prediction models for binary outcomes allows researchers to have more flexibility for sample size rules based on expected precision, assurance probabilities, and VoI.
+Using a Bayesian framework enables researchers to have more flexibility for sample size rules based on expected precision, assurance probabilities, and VoI.
 
-### ISARIC Model
+The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Detauls of this approach are provided in <ref to the preprint>.
 
-We will be working on a data set from the International Severe Acute Respiratory and emerging Infection Consortium (ISARIC). This data set contains information from electronic hospital records from all 9 health regions of the UK.
+This tutorial overviews two core functions in this R package: XXX, and YYY. This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <package home page for details>[ref to package on github]
 
-The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 in UK @gupta2021isaric. London was left out for external validation while the other 8 regions were used in creating the model. For the continuation of our tutorial we assume that London was left out in this study, and the performance of the model in the London region will be a random draw from the distribution of performance observed across the other 8 regions of the UK.
+
+### The ISARIC Model
+
+As a case study, we present sample size calculations for the ISARIC model, a risk prediction model for deterioration of COVID-19 infection in hospitalized patients [REF]. The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 in UK @gupta2021isaric. London was left out for external validation while the other 8 regions were used in creating the model. 
+
+We assume we plan to validate this study in the London region. The performance of the model in the London region will be a random draw from the distribution of performance observed across the other 8 regions of the UK.
+
+
 
 ### Computing Evidence and Specifying Targets
 
 The values in the evidence are extracted from meta-analysis of the original report for the ISARIC 4C model, which produced these values based on predictive distribution of the internal-external validation results.
 
-Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3
+The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, O/E ratio, or mean calibration error. These dsitributions are dervied from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere [REF]. Here, we directly use the predictive distribtutions from this meta-analysis.
+
 
 ```{r set-seed}
 set.seed(123)
@@ -48,6 +56,9 @@ evidence <- list(prev=list(type="beta", mean=0.427966984132821, sd=0.02953973091
                  cal_slp=list(type="norm", mean=0.995017759715243, sd = 0.0237278675967507))
 ```
 
+
+Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3
+
 ```{r targets-samp}
 targets_samp <- list(eciw.cstat=0.1,
                 eciw.cal_oe=0.22,
@@ -58,7 +69,7 @@ targets_samp <- list(eciw.cstat=0.1,
                 assurance.nb=0.9)
 ```
 
-### bpm_valsamp
+### Sample size calculator (bpm_valsamp())
 
 This is the main function call that computes the sample size requirements based on our evidence and targets. It returns the required sample size for external validation for each parameter requested in the targets.
 
@@ -76,11 +87,11 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
 print(res$N)
 ```
 
-### bpm_valprec
+### Computing precision / VoI for a given sample size (bpm_valprec())
 
 This function returns the parameter values based on the given sample sizes and targets. It works as an inverse to the bpm_valsamp function.
 
-For this example, we will be using the outputs from bpm_valsamp to show that the output of bpm_valprec will return the input of the bpm_valsamp. We use the same evidence element defined earlier, and create a new target element target_prec, that contains the same parameters target_samp but defined as T for present eciw targets, or 0.9 for present qciw targets.
+For this example, we will be using the outputs from bpm_valsamp to verify that the 95%CI widths and VoI values for sample size components derived from *bpm_valprec* are indeed close to the desired ones. As such, we use the same evidence element defined earlier, and create a new target element target_prec, that contains the same parameters target_samp but defined as T for present eciw targets, or 0.9 for present qciw targets.
 
 The N_prec variable includes the output sample sizes from bpm_valsamp.
 
