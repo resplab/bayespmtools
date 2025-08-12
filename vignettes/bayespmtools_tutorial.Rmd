@@ -11,7 +11,8 @@ bibliography: references.bib
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  warnings = TRUE
 )
 ```
 
@@ -23,41 +24,42 @@ library(bayespmtools)
 
 Current sample size calculations for external validation of risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels, which makes it difficult to represent a complete picture.
 
-Using a Bayesian framework enables researchers to have more flexibility for sample size rules based on expected precision, assurance probabilities, and VoI.
+Using a Bayesian framework enables researchers to have more flexibility for sample size rules based on expected precision, assurance probabilities, and Value of Information (VoI).
 
-The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Detauls of this approach are provided in <ref to the preprint>.
+The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in <https://arxiv.org/pdf/2504.15923>.
 
-This tutorial overviews two core functions in this R package: XXX, and YYY. This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <package home page for details>[ref to package on github]
-
+This tutorial overviews two core functions in this R package: ***bpm_valsamp***, and ***bpm_valprec***. This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <https://github.com/resplab/bayespmtools>
 
 ### The ISARIC Model
 
-As a case study, we present sample size calculations for the ISARIC model, a risk prediction model for deterioration of COVID-19 infection in hospitalized patients [REF]. The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 in UK @gupta2021isaric. London was left out for external validation while the other 8 regions were used in creating the model. 
+As a case study, we present sample size calculations for the ISARIC 4C model. The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 @gupta2021isaric. The investigators used electronic hospital records from all 9 health regions of the UK to develop and validate this model. London was left out for external validation while the other 8 regions were used in creating the model.
 
 We assume we plan to validate this study in the London region. The performance of the model in the London region will be a random draw from the distribution of performance observed across the other 8 regions of the UK.
-
-
 
 ### Computing Evidence and Specifying Targets
 
 The values in the evidence are extracted from meta-analysis of the original report for the ISARIC 4C model, which produced these values based on predictive distribution of the internal-external validation results.
 
-The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, O/E ratio, or mean calibration error. These dsitributions are dervied from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere [REF]. Here, we directly use the predictive distribtutions from this meta-analysis.
-
+The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, O/E ratio, or mean calibration error. These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere @gupta2021isaric. Here, we directly use the predictive distributions from this meta-analysis.
 
 ```{r set-seed}
 set.seed(123)
 ```
 
 ```{r load-evidence}
-evidence <- list(prev=list(type="beta", mean=0.427966984132821, sd=0.0295397309129426),
-                 cstat=list(type="logitnorm", mean=0.760628336908955, sd=0.00635806041351944),
-                 cal_mean=list(type="norm", mean=-0.00934717199436785, sd=0.124517605045825),
-                 cal_slp=list(type="norm", mean=0.995017759715243, sd = 0.0237278675967507))
+evidence <- list(prev=list(type="beta", mean=0.428, sd=0.030),
+                 cstat=list(type="logitnorm", mean=0.761, sd=0.006),
+                 cal_mean=list(type="norm", mean=-0.009, sd=0.125),
+                 cal_slp=list(type="norm", mean=0.995, sd = 0.024))
 ```
 
+### Targets
 
-Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3
+Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3.
+
+The expected confidence intervals widths (eciw) only require a target confidence interval width. Meanwhile, the quantile confidence interval widths (qciw) require the target confidence interval width to be specified along with the desired quantile, in our example we use a quantile of 0.9 for 90% assurance.
+
+The assurance.nb parameter is the optimality assurance meaning the probability we will correctly identify the strategy that has the highest net benefit based on the validation data. In this example it is set at 0.9.
 
 ```{r targets-samp}
 targets_samp <- list(eciw.cstat=0.1,
@@ -69,7 +71,7 @@ targets_samp <- list(eciw.cstat=0.1,
                 assurance.nb=0.9)
 ```
 
-### Sample size calculator (bpm_valsamp())
+### Sample size calculator (*bpm_valsamp*())
 
 This is the main function call that computes the sample size requirements based on our evidence and targets. It returns the required sample size for external validation for each parameter requested in the targets.
 
@@ -87,13 +89,13 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
 print(res$N)
 ```
 
-### Computing precision / VoI for a given sample size (bpm_valprec())
+### Computing precision / VoI for a given sample size (*bpm_valprec*())
 
-This function returns the parameter values based on the given sample sizes and targets. It works as an inverse to the bpm_valsamp function.
+This function returns the parameter values based on the given sample sizes and targets. It works as an inverse to the ***bpm_valsamp*** function.
 
-For this example, we will be using the outputs from bpm_valsamp to verify that the 95%CI widths and VoI values for sample size components derived from *bpm_valprec* are indeed close to the desired ones. As such, we use the same evidence element defined earlier, and create a new target element target_prec, that contains the same parameters target_samp but defined as T for present eciw targets, or 0.9 for present qciw targets.
+For this example, we will be using the outputs from ***bpm_valsamp*** to verify that the 95% CI widths and VoI values for sample size components derived from ***bpm_valprec*** are indeed close to the desired ones. As such, we use the same evidence element defined earlier, and create a new target element *target_prec*, that contains the same parameters *target_samp* but defined as T for present eciw targets, or 0.9 for present qciw targets.
 
-The N_prec variable includes the output sample sizes from bpm_valsamp.
+The *N_prec* variable includes the output sample sizes from ***bpm_valsamp***.
 
 ```{r}
 N_prec = c(351, 430, 1064, 399, 522, 1181, 306)
@@ -111,15 +113,39 @@ prec <- bpm_valprec(
 
 ```
 
-<Write something about the compatibility of results?>
+### Validating and Understanding the Outputs
 
-```{r}
-#print results
-print(prec$eciw)
+Given our output, below we can validate the results of ***bpm_valsamp*** by comparing our output of ***bpm_valprec***to using our *targets_samp* and *N_prec* variable.
 
-print(prec$qciw)
+Our target confidence interval width passed into ***bpm_valsamp*** for *eciw.cstat* was 0.1. And the resulting sample size we calculated to reach this target was 351.
 
-print(prec$assurance)
+Notice that 351 is the first element in our *N_prec* variable that is being passed into ***bpm_valprec***. Now we can look at the first element in our output for ***bpm_valprec*** which corresponds to *eciw.cstat* and see that the calculated precision is indeed 0.1 which is exactly the same as the targets specified.
+
+Additionally, we can continue verifying the remaining parameters. Notice that the second element in the ***bpm_valprec*** output for *eciw.cal_oe* is 0.22 which matches target specified earlier for *eciw.cal_oe* in *targets_samp.*
+
+assurance0 is the assurance before any validation studies given our current uncertainties. It is a baseline assurance based on our evidence and not dependent on any targets.
+
+```{r include = FALSE}
+### This code will not show in the vignette
+### Used to round the results so that the tutorial is easier to follow
+
+prec$eciw$cstat <- round(prec$eciw$cstat, 3)
+prec$eciw$cal_oe <- round(prec$eciw$cal_oe, 3)
+prec$eciw$cal_slp <- round(prec$eciw$cal_slp, 3)
+
+prec$qciw$cstat <- round(prec$qciw$cstat, 3)
+prec$qciw$cal_oe <- round(prec$qciw$cal_oe, 3)
+prec$qciw$cal_slp <- round(prec$qciw$cal_slp, 3)
+
+prec$assurance$assurance0 <- round(prec$assurance$assurance0, 3)
+prec$assurance$assurance <- round(prec$assurance$assurance , 3)
+```
+
+```{r compare_results}
+
+results <- data.frame(sample_size = N_prec, eciw = prec$eciw, qciw = prec$qciw, prec$assurance)
+
+print(results)
 ```
 
 ### References
