@@ -21,29 +21,30 @@ library(bayespmtools)
 
 ## Introduction
 
-Current sample size calculations for external validation of risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels, which makes it difficult to represent a complete picture.
-
-Using a Bayesian framework enables researchers to have more flexibility for sample size rules based on expected precision, assurance probabilities, and Value of Information (VoI).
+Current sample size calculations for external validation of risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels. Using a Bayesian framework enables researchers to have more flexibility for sample size rules, including being able to include uncertainty in model performance in sample size calculations, and specify targets based on expected precision, assurance probabilities, and Value of Information (VoI).
 
 The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in <https://arxiv.org/pdf/2504.15923>.
 
-This tutorial overviews two core functions in this R package: ***bpm_valsamp***, and ***bpm_valprec***. This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <https://github.com/resplab/bayespmtools>
+This tutorial overviews two core functions in this R package: ***bpm_valsamp***, and ***bpm_valprec***. This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <https://github.com/resplab/bayespmtools> for instructions on more instructions on how to install and use this package.
 
 ### The ISARIC Model
 
 As a case study, we present sample size calculations for the ISARIC 4C model. The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 @gupta2021isaric. The investigators used electronic hospital records from all 9 health regions of the UK to develop and validate this model. London was left out for external validation while the other 8 regions were used in creating the model.
 
-We assume we plan to validate this study in the London region. The performance of the model in the London region will be a random draw from the distribution of performance observed across the other 8 regions of the UK.
+We assume we plan to validate this study in the London region. Based on the exchengability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK.
 
 ### Computing Evidence and Specifying Targets
 
 The values in the evidence are extracted from meta-analysis of the original report for the ISARIC 4C model, which produced these values based on predictive distribution of the internal-external validation results.
 
-The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, O/E ratio, or mean calibration error. These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere @gupta2021isaric. Here, we directly use the predictive distributions from this meta-analysis.
+The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, observed-to-expected (O/E) ratio, or mean calibration (difference between average observed and predicted risks - which is the one we use for this example). These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere @gupta2021isaric. Here, we directly use the predictive distributions from this meta-analysis.
 
 ```{r set-seed}
+# Settings the random number seed for reproducibilty.
 set.seed(123)
 ```
+
+Specified evidence should be a list, with exact naming per below. Note that we are specifying evidence via mean and sd. Other ways of doing so is also possible. Please refer to the help documents for the related functions.
 
 ```{r load-evidence}
 evidence <- list(prev=list(type="beta", mean=0.428, sd=0.030),
@@ -56,9 +57,9 @@ evidence <- list(prev=list(type="beta", mean=0.428, sd=0.030),
 
 Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3.
 
-The expected confidence intervals widths (eciw) only require a target confidence interval width. Meanwhile, the quantile confidence interval widths (qciw) require the target confidence interval width to be specified along with the desired quantile, in our example we use a quantile of 0.9 for 90% assurance.
+The expected confidence intervals widths (eciw) only require a target confidence interval width. Meanwhile, the quantile confidence interval widths (qciw) require the target confidence interval width to be specified along with the desired assurance (quantile). In our example we use a quantile of 0.9 for 90% assurance.
 
-The assurance.nb parameter is the optimality assurance meaning the probability we will correctly identify the strategy that has the highest net benefit based on the validation data. In this example it is set at 0.9.
+The assurance.nb parameter is the Optimality Assurance defined as the probability that we will correctly identify the strategy that has the highest true net benefit based on the validation data. In this example it is set at 0.9.
 
 ```{r targets-samp}
 targets_samp <- list(eciw.cstat=0.1,
@@ -87,6 +88,8 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
 #Print results
 print(res$N)
 ```
+
+As can be seen above, different components require different sample size estimates. The largest sample size is XXX, dictated by on the assurance desired for the calibration slope criterion.
 
 ### Computing precision / VoI for a given sample size (*bpm_valprec*())
 
