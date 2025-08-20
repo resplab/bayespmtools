@@ -1,0 +1,174 @@
+---
+title: "Bayesian Power, Assurance, and Value-of-Information Analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  data: "hawaii"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(reshape2)
+
+my_format <- function(x)
+{
+  round(x,3)
+}
+
+
+
+```
+
+
+```{r, echo=FALSE}
+if(is.null(params$data) | length(params$data)==0)
+{
+  message("No results were generated.")
+  knit_exit()
+}else
+{
+  results <- params$data$results
+  args <- params$data$args
+}
+
+tmp <- as.data.frame(lapply(names(args$targets), strsplit, "[.]"))
+target_rules <- unname(unlist(tmp[1,]))
+target_metrics <- unname(unlist(tmp[2,]))
+target_values <- (args$targets)
+ 
+```
+
+
+
+
+## fciw
+```{r, echo=FALSE, results='asis'}
+
+for(rule in c('fciw','eciw','qciw'))
+{
+  relevants <- which(target_rules==rule)
+  if(length(relevants)>0)
+  {
+    tbl <- list()
+    nms <- c()
+    plot_data <- data.frame()
+    
+    for(metric in target_metrics[relevants])
+    {
+      tbl <- rbind(tbl, my_format(results[[rule]][[metric]]))
+      plot_data <- rbind(plot_data, results[[rule]][[metric]])
+      nms <- c(nms,metric)
+    }
+  
+    rownames(tbl) <- nms
+    rownames(plot_data) <- nms
+    colnames(tbl) <- paste0("N=",args$N)
+    
+    print(kable(tbl, caption=rule))
+    cat("\n")
+    
+    
+    plot_data_df <- as.data.frame(t(plot_data))
+    plot_data_df$N <- args$N
+    
+    # Get the row names before transposing
+    row_names <- rownames(plot_data)
+    
+    # Reshape the data into long format for ggplot
+    plot_data_long <- reshape2::melt(plot_data_df, id.vars = "N", variable.name = "Line", value.name = "Value")
+    
+    # Set the row names back to the Line column
+    plot_data_long$Line <- rep(row_names, each = length(unique(plot_data_long$N)))
+    
+    # Create the plot
+    p <- ggplot(plot_data_long, aes(x = N, y = Value, color = Line)) +
+      geom_line() +  # Plot all lines
+      labs(x = "Sample size", y = target) +  # Add axis labels
+      theme_minimal()  # Use a minimal theme
+    # Print the plot
+    print(p)
+  }
+}
+  
+```
+
+
+
+
+## VoI
+
+```{r, echo=FALSE, results='asis'}
+
+if(!is.null(args$targets$assurance.nb) | !is.null(args$targets$voi.nb))
+{
+  
+  tbl <- list()
+  nms <- c()
+  if(isTRUE(args$targets$voi.nb))
+  {
+    print(paste0("EVPI=",results$voi$evpi))
+  
+    tbl <- rbind(tbl, my_format(results$voi$evsi))
+    nms <- c(nms,"EVSI")
+  }
+  if(isTRUE(args$targets$assurance.nb))
+  {
+    print(paste0("BAse assurance (at N=0)=",results$assurance$assurance0))
+  
+    tbl <- rbind(tbl, my_format(results$assurance$assurance))
+    nms <- c(nms,"Assurance")
+  }
+  
+  rownames(tbl) <- nms
+  colnames(tbl) <- paste0("N=",args$N)
+  
+  print(kable(tbl))
+  cat("\n")
+  
+  library(ggplot2)
+  
+  if(isTRUE(args$targets$voi.nb))
+  {
+    # Create a data frame for ggplot
+    plot_data <- data.frame(
+      N = args$N,  # Sample sizes
+      EVSI = results$voi$evsi,  # EVSI values
+      EVPI = rep(results$voi$evpi, length(args$N))  # Repeated EVPI values
+    )
+    
+    # Create the plot
+    p <- ggplot(plot_data, aes(x = N)) +
+      geom_line(aes(y = EVSI), color = "black") +  # Plot EVSI as a black line
+      geom_line(aes(y = EVPI), color = "gray") +   # Plot EVPI as a red line
+      labs(x = "Sample size", y = "VoI") +        # Add axis labels
+      theme_minimal()                             # Use a minimal theme
+    
+    plot(p)
+  }  
+  
+  if(isTRUE(args$targets$assurance.nb))
+  {
+    plot_data <- data.frame(
+      N = args$N,  # Sample sizes
+      Assurance = results$assurance$assurance,
+      Assurance0 = rep(results$assurance$assurance0, length(args$N))
+    )
+    
+    p <- ggplot(plot_data, aes(x = N)) +
+         geom_line(aes(y = Assurance), color = "black") +  # Plot Assurance as a black line
+         geom_line(aes(y = Assurance0), color = "gray") +         # Plot Rule as a red line
+         labs(x = "Sample size", y = "Assurance") +             # Add axis labels
+         ylim(0, max(results$assurance$assurance)) +  # Set y-axis limits
+         theme_minimal()
+    
+    plot(p)
+  }
+}
+
+```
+
+
+
