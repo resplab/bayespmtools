@@ -1,13 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Bayepmtools
+# Bayespmtools
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
-The goal of Bayepmtools is to enable Bayesian sample size and precision
+The goal of Bayespmtools is to enable Bayesian sample size and precision
 calculations for external validation of risk prediction models.
 
 For the details of the methodology, please refer to the accompanying
@@ -45,25 +44,12 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
 #> Generating Monte Carlo sample...
 #> Imputing correlation...
 #> Based on effective sample size: 281
-#> Loading required package: pROC
-#> Type 'citation("pROC")' for a citation.
-#> 
-#> Attaching package: 'pROC'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     cov, smooth, var
-#> Loading required package: mcmapper
 #> Infering calibration intercept...
 #> Computing CI sample size...
-#> Loading required package: fastLogisticRegressionWrap
-#> Welcome to fastLogisticRegressionWrap v1.2.0.
 #> Computing se/sp...
 #> VoI / NB assuraance...
-#> Loading required package: OOR
 
 print(res$N)
-#>   eciw.cstat  eciw.cal_oe eciw.cal_slp   qciw.cstat  qciw.cal_oe qciw.cal_slp 
-#>          390          467         1260          406          732         1196 
-#> assurance.nb 
-#>          717
+#>   eciw.cstat  eciw.cal_oe eciw.cal_slp   qciw.cstat  qciw.cal_oe qciw.cal_slp assurance.nb 
+#>          356          405          910          405          524         1177          306
 ```

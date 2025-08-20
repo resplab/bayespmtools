@@ -2,23 +2,23 @@
 % Please edit documentation in R/core.R
 \name{calc_ciw_mc}
 \alias{calc_ciw_mc}
-\title{Calculates pre-posterior distribution of 95\% CI widths based on given method}
+\title{#'Calculates Pre-Posterior Distribution of 95\% CI Widths Based on Given Method}
 \usage{
 calc_ciw_mc(N, parms_sample, method)
 }
 \arguments{
 \item{N}{A vector of sample sizes}
 
-\item{parms_sample}{matrix of parameters for the distribution each row with appropriate parameters:
+\item{parms_sample}{Matrix of parameters for the distribution each row with appropriate parameters:
 cstat: c-statistic
 prev: prevalence
 dist_type: distribution type
 dist_parm1: first parameter of distribution
-dist_parm2: seconnd parameter of distribution
+dist_parm2: second parameter of distribution
 cal_int: calibration intercept
 cal_slp: calibration slope}
 
-\item{method}{method to calculate 95\% confident interval width, one of sample, 2s}
+\item{method}{Method to calculate 95\% confident interval width, one of sample, 2s}
 }
 \value{
 List of matrices each with dimension (number of rows in parms_sample x length N) containing 95\% confidence interval width for each of:

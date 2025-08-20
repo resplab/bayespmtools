@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{find_n_quantile}
 \alias{find_n_quantile}
-\title{Find sample size N, so that the specified quantile is equal to given target}
+\title{Calculates Sample Size Given Target Quantile}
 \usage{
 find_n_quantile(target, N, q, ciws)
 }

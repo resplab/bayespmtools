@@ -2,22 +2,22 @@
 % Please edit documentation in R/core.R
 \name{calc_se_sp}
 \alias{calc_se_sp}
-\title{Calculate the sensitivity and specificity of the model at given threshold}
+\title{Calculates the Sensitivity and Specificity}
 \usage{
 calc_se_sp(dist_type, dist_parms, cal_int, cal_slp, threshold, prev)
 }
 \arguments{
-\item{dist_type}{One of c("logitnorm", "beta", "probitnorm")}
+\item{dist_type}{The distribution type, one of c("logitnorm", "beta", "probitnorm").}
 
-\item{dist_parms}{Vector of the two parameters of interest given the distribution}
+\item{dist_parms}{Vector of the two parameters of interest given the distribution.}
 
-\item{cal_int}{calibration intercept}
+\item{cal_int}{The calibration intercept.}
 
-\item{cal_slp}{calibration slope}
+\item{cal_slp}{The calibration slope.}
 
-\item{threshold}{risk threshold}
+\item{threshold}{The risk threshold}
 
-\item{prev}{outcome prevalence, the expectation of the model}
+\item{prev}{The outcome prevalence, the expectation of the model}
 }
 \value{
 A vector containing sensitivity and specificity

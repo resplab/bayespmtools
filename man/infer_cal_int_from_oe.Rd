@@ -2,20 +2,20 @@
 % Please edit documentation in R/core.R
 \name{infer_cal_int_from_oe}
 \alias{infer_cal_int_from_oe}
-\title{Infer calibration intercept from  observed-to-expected outcome ratio given a fixed calibration slope and a given distribution for calibrated risks}
+\title{Infer Calibration Intercept from O/E ratio}
 \usage{
 infer_cal_int_from_oe(dist_type, dist_parms, cal_oe, cal_slp, prev = NULL)
 }
 \arguments{
-\item{dist_type}{One of c("logitnorm", "probitnorm", "beta")}
+\item{dist_type}{The distribution type, one of c("logitnorm", "probitnorm", "beta").}
 
-\item{dist_parms}{The two parameters that index the type}
+\item{dist_parms}{The two parameters that index the type.}
 
-\item{cal_oe}{The observed-to-expected outcome ratio. (E(Y)/E(pi))}
+\item{cal_oe}{The observed-to-expected outcome ratio.}
 
-\item{cal_slp}{The calibration slope}
+\item{cal_slp}{The calibration slope.}
 
-\item{prev}{Outcome prevalence. Optional; if not provided, estimate is as the expected value of the distribution of calibrated risks}
+\item{prev}{Outcome prevalence. Optional; if not provided, estimate is as the expected value of the distribution of calibrated risks.}
 }
 \value{
 The estimated calibration intercept

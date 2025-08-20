@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{calc_riley_vars}
 \alias{calc_riley_vars}
-\title{Calculates approximate variances and covariance of metrics using the Riley framework}
+\title{Calculates Approximate Variances and Covariance for Performance Metrics}
 \usage{
 calc_riley_vars(N, parms)
 }

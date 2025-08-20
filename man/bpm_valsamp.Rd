@@ -2,7 +2,7 @@
 % Please edit documentation in R/valsamp.R
 \name{bpm_valsamp}
 \alias{bpm_valsamp}
-\title{Bayesian sample size calculation for risk prediction models}
+\title{Bayesian Sample Size Calculator}
 \usage{
 bpm_valsamp(
   evidence,
@@ -23,7 +23,7 @@ voi.nb: Boolean value for Value of Information for net benefit}
 
 \item{n_sim}{Number of simulations}
 
-\item{method}{method to calculate pre-posterior distribution of 95\% confidence intervals. One of "sample", "2s"; default is "sample"}
+\item{method}{Method to calculate pre-posterior distribution of 95\% confidence intervals. One of "sample", "2s"; default is "sample"}
 
 \item{threshold}{Threshold used for decision rules and NB calculations. Required if \code{voi.nb} or \code{assurance.nb} are requested.}
 
@@ -34,27 +34,26 @@ voi.nb: Boolean value for Value of Information for net benefit}
 \item{ex_args}{List of extra arguments.}
 }
 \value{
-a list containing:
+A list containing:
 N: Estimated sample sizes needed to meet the targets.
 sample: Data frame of simulated samples
 evidence: Processed evidence object
-trace: trace output from stochastic root finding method TODO
+trace: Trace output from stochastic root finding method
 }
 \description{
 Bayesian sample size calculation for external validation studies of risk prediction models
 }
 \examples{
 evidence <- list(
-  prev = list(type = "beta", mean = 0.4, sd = 0.02),        # prevalence
-  cstat = list(mean = 0.75, sd = 0.03),                     # discrimination (C-statistic)
-  cal_mean = list(mean = 0, sd = 0.1),                      # calibration intercept
-  cal_slp = list(mean = 1, sd = 0.1)                        # calibration slope
+  prev = list(type = "beta", mean = 0.4, sd = 0.02),        
+  cstat = list(mean = 0.75, sd = 0.03),                    
+  cal_mean = list(mean = 0, sd = 0.1),                      
+  cal_slp = list(mean = 1, sd = 0.1)                       
 )
 
-# Specify target criteria for sample size calculation
 targets <- list(
-  eciw.cstat = 0.05,        # expected confidence interval width for c-statistic
-  assurance.nb = 0.8        # net benefit assurance target
+  eciw.cstat = 0.05,     
+  assurance.nb = 0.8       
 )
 
 bpm_valsamp(

@@ -2,29 +2,29 @@
 % Please edit documentation in R/core.R
 \name{plot_cal_instability}
 \alias{plot_cal_instability}
-\title{Plots calibration instability from simulated calibration curves based on given method}
+\title{Plots Calibration Instability from Simulated Calibration Curves}
 \usage{
 plot_cal_instability(N, sample, method = "loess", X = (1:99)/100)
 }
 \arguments{
-\item{N}{number of observations to simulate in each sample}
+\item{N}{Number of observations to simulate in each sample}
 
-\item{sample}{data frame with columns:
+\item{sample}{Data frame with columns:
 dist_type: distribution type
 dist_parm1: first distribution parameter (e.g. mean, alpha, shape1)
 dist_parm2: second distribution parameter (e.g. sd, beta, shape2)
 cal_int: calibration intercept
 cal_slp: calibration slope}
 
-\item{method}{one of loess or line, on default is loess}
+\item{method}{One of loess or line, on default is loess}
 
-\item{X}{vector of predicted probabilities, on default is 0.01 to 0.99}
+\item{X}{Vector of predicted probabilities, on default is 0.01 to 0.99}
 }
 \value{
-plot of simulated calibration curves
+Plot of simulated calibration curves
 }
 \description{
-simulates calibration curves based on given method, and uses plot to visualize calibration instability.
+Simulates calibration curves based on given method, and uses plot to visualize calibration instability.
 }
 \examples{
 sample <- data.frame(

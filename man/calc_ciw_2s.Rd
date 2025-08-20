@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{calc_ciw_2s}
 \alias{calc_ciw_2s}
-\title{Calculates pre-posterior distribution of 95\% CI widths using two-step method.}
+\title{Calculates Pre-Posterior Distribution of 95\% CI Widths Using Two-step Method}
 \usage{
 calc_ciw_2s(N, parms)
 }

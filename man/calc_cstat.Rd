@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{calc_cstat}
 \alias{calc_cstat}
-\title{Calculate the c-statistic of the model}
+\title{Calculates the C-statistic of Model}
 \usage{
 calc_cstat(type, parms, m = NULL)
 }
@@ -11,10 +11,10 @@ calc_cstat(type, parms, m = NULL)
 
 \item{parms}{A numeric vector containing parameters relevant to the model.}
 
-\item{m}{#TODO!}
+\item{m}{Mean, default is NULL}
 }
 \value{
-The c-statistic.
+The C-statistic
 }
 \description{
 Calculates the c-statistic given the model type and parameters.

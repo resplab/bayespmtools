@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{calc_ciw_sample}
 \alias{calc_ciw_sample}
-\title{Calculates pre-posterior distribution of 95\% CI widths using sampling-based simulation}
+\title{Calculates Pre-Posterior Distribution of 95\% CI Widths Using Sampling-based Simulation}
 \usage{
 calc_ciw_sample(N, parms)
 }
@@ -13,7 +13,7 @@ calc_ciw_sample(N, parms)
 prev: prevalence
 dist_type: distribution type
 dist_parm1: first parameter of distribution
-dist_parm2: seconnd parameter of distribution
+dist_parm2: second parameter of distribution
 cal_int: calibration intercept
 cal_slp: calibration slope}
 }

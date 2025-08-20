@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{find_n_mean}
 \alias{find_n_mean}
-\title{Find sample size N, so that the mean confidence interval is equal to given target}
+\title{Calculates Sample Size Given Target Mean CI}
 \usage{
 find_n_mean(target, N, ciws, decreasing = T, convex = T)
 }
@@ -21,7 +21,7 @@ find_n_mean(target, N, ciws, decreasing = T, convex = T)
 Integer. Estimated sample size needed to achieve the target
 }
 \description{
-Find sample size N, so that the mean confidence interval is equal to given target, assumes function is decreasing and convex
+Calculates sample size N, so that the mean confidence interval is equal to given target, assumes function is decreasing and convex
 }
 \examples{
 ciw_matrix <- matrix(c(0.09, 0.07, 0.06, 0.05), nrow=1)

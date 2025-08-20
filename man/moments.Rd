@@ -2,12 +2,12 @@
 % Please edit documentation in R/core.R
 \name{moments}
 \alias{moments}
-\title{Calculate mean and variance of a model}
+\title{Mean and Variance Calculator}
 \usage{
 moments(type, parms)
 }
 \arguments{
-\item{type}{A string; one of c("norm", "beta", "logitnorm", "probitnorm") indicating the model type.}
+\item{type}{The distribution type, one of c("norm", "beta", "logitnorm", "probitnorm").}
 
 \item{parms}{A numeric vector containing parameters relevant to the model.}
 }

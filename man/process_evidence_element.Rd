@@ -2,12 +2,12 @@
 % Please edit documentation in R/core.R
 \name{process_evidence_element}
 \alias{process_evidence_element}
-\title{Creates a clean list including type, parms, moments}
+\title{Creates a Standardized List Including type, parms, moments}
 \usage{
 process_evidence_element(element)
 }
 \arguments{
-\item{element}{named list with type (e.g "beta", "norm", logitnorm"), and one of valid combination of parameters:
+\item{element}{Named list with type (e.g "beta", "norm", logitnorm"), and one of valid combination of parameters:
 \itemize{
 \item "mean" and "var"
 \item "m" and "v"
@@ -22,7 +22,7 @@ process_evidence_element(element)
 an element with type, params and moments.
 }
 \description{
-standardizes element names, and creates a clean list of names
+Standardizes element names, and creates a clean list of names
 }
 \examples{
 process_evidence_element(list(type="norm", mean=0, sd=1))

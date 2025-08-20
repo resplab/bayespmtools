@@ -2,25 +2,25 @@
 % Please edit documentation in R/core.R
 \name{rbnorm}
 \alias{rbnorm}
-\title{Generates samples from a normal distribution using marginal means, variances, and covariance}
+\title{Generates Samples From Normal Distribution}
 \usage{
 rbnorm(n, mu1, mu2, var1, var2, cov)
 }
 \arguments{
-\item{n}{number of samples to be generated}
+\item{n}{Number of samples to be generated}
 
-\item{mu1}{mean of first variable}
+\item{mu1}{Mean of first variable}
 
-\item{mu2}{mean of second variable}
+\item{mu2}{Mean of second variable}
 
-\item{var1}{variance of first variable}
+\item{var1}{Variance of first variable}
 
-\item{var2}{variance of second variable}
+\item{var2}{Variance of second variable}
 
-\item{cov}{covariance between the two variables}
+\item{cov}{Covariance between the two variables}
 }
 \value{
-returns matrix of nx2 where
+Matrix of nx2 where
 column 1 contains samples for the first variable, and
 column 2 contains samples for the second variable conditioned on the first
 }

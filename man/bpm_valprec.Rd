@@ -2,7 +2,7 @@
 % Please edit documentation in R/valprec.R
 \name{bpm_valprec}
 \alias{bpm_valprec}
-\title{Bayesian Precision/VoI calculator for external validation studies of risk prediction models at a given sample size}
+\title{Bayesian Precision/VoI Calculator}
 \usage{
 bpm_valprec(
   N,

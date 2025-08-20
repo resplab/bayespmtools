@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{infer_correlation}
 \alias{infer_correlation}
-\title{Calculates correlation based on simulated data}
+\title{Calculates Correlation}
 \usage{
 infer_correlation(dist_type, dist_parms, cal_int, cal_slp, n, n_sim)
 }
@@ -11,11 +11,11 @@ infer_correlation(dist_type, dist_parms, cal_int, cal_slp, n, n_sim)
 
 \item{dist_parms}{The two parameters of interest for the given distribution type}
 
-\item{cal_int}{Calibration intercept}
+\item{cal_int}{The calibration intercept.}
 
-\item{cal_slp}{Calibration slope}
+\item{cal_slp}{The calibration slope.}
 
-\item{n}{number of observations for each simulation}
+\item{n}{number of observations for each simulation.}
 
 \item{n_sim}{number of simulations}
 }
@@ -23,7 +23,7 @@ infer_correlation(dist_type, dist_parms, cal_int, cal_slp, n, n_sim)
 correlation among the simulated data
 }
 \description{
-calculates correlation based on simulated data
+Calculates correlation based on simulated data
 }
 \examples{
 infer_correlation("beta", c(1,1), 1, 0.5, 10, 10)

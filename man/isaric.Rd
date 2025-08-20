@@ -13,7 +13,7 @@ A data frame with 8 rows and 10 columns
 \item{n_events}{Number of positive subjects}
 \item{cstat}{C-statistic}
 \item{cstat_l}{Lower bound for the confidence interval of the C-statistic}
-\item{cal_mean}{Calibraiton Mean}
+\item{cal_mean}{Calibration Mean}
 \item{cal_mean_l}{Lower bound for the confidence interval of the calibration mean}
 \item{cal_slope}{Calibration slope}
 \item{cal_slope_l}{Lower bound of the confidence interval of the calibration slope}

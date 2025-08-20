@@ -660,7 +660,7 @@ calc_ciw_2s <- function(N, parms)
 #'  prev: prevalence
 #'  dist_type: distribution type
 #'  dist_parm1: first parameter of distribution
-#'  dist_parm2: seconnd parameter of distribution
+#'  dist_parm2: second parameter of distribution
 #'  cal_int: calibration intercept
 #'  cal_slp: calibration slope
 #'@return List of length N, of vectors containing 95% confidence interval width for each of:
@@ -724,7 +724,7 @@ calc_ciw_sample <- function(N, parms)
 #'  prev: prevalence
 #'  dist_type: distribution type
 #'  dist_parm1: first parameter of distribution
-#'  dist_parm2: seconnd parameter of distribution
+#'  dist_parm2: second parameter of distribution
 #'  cal_int: calibration intercept
 #'  cal_slp: calibration slope
 #'@param method Method to calculate 95% confident interval width, one of sample, 2s
@@ -849,7 +849,7 @@ find_n_quantile <- function(target, N, q, ciws)
 }
 
 
-#'Generates Samples From Normal Distribiution
+#'Generates Samples From Normal Distribution
 #'
 #'@description generates samples from a normal distribution using marginal means, variances, and covariance
 #'@param n Number of samples to be generated
@@ -1032,8 +1032,6 @@ process_evidence <- function(evidence)
 #'  cal_slp: calibration slope
 #'@param method One of loess or line, on default is loess
 #'@param X Vector of predicted probabilities, on default is 0.01 to 0.99
-#'@importFrom graphics lines
-#'@importFrom stats loess
 #'@return Plot of simulated calibration curves
 #'@examples
 #'sample <- data.frame(

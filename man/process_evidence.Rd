@@ -2,7 +2,7 @@
 % Please edit documentation in R/core.R
 \name{process_evidence}
 \alias{process_evidence}
-\title{Transforms given evidence into a standardized format}
+\title{Transforms Evidence Into Standardized Format}
 \usage{
 process_evidence(evidence)
 }

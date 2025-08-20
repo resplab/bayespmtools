@@ -2,21 +2,21 @@
 % Please edit documentation in R/core.R
 \name{inv_mean_quantile}
 \alias{inv_mean_quantile}
-\title{Calculate the model parameters given the distribution type, mean, quantile, and percentile.}
+\title{Calculates the Model Parameters Given Quantile}
 \usage{
 inv_mean_quantile(type, m, q, p)
 }
 \arguments{
-\item{type}{Type of model, one of ("logitnorm", "beta", "probitnorm", "norm")}
+\item{type}{The distribution type, one of c("norm", "beta", "logitnorm", "probitnorm").}
 
-\item{m}{mean}
+\item{m}{Mean of the of distribution.}
 
-\item{q}{quantile}
+\item{q}{The quantile value.}
 
-\item{p}{percentile}
+\item{p}{The percentile at which the quantile occurs.}
 }
 \value{
-The two parameters of the given type.
+The model parameters of the given type.
 }
 \description{
 Calculate the model parameters given the distribution type, mean, quantile, and percentile.

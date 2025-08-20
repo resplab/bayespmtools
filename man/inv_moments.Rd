@@ -2,19 +2,20 @@
 % Please edit documentation in R/core.R
 \name{inv_moments}
 \alias{inv_moments}
-\title{Calculate the model parameters given the first two moments.}
+\title{Calculates the Model Parameters Given Moments}
 \usage{
 inv_moments(type, moments)
 }
 \arguments{
-\item{type}{A string of the type of model; one of c("norm", "logitnorm", "beta")}
+\item{type}{The distribution type, one of c("norm", "beta", "logitnorm").}
 
-\item{moments}{A numeric value denoting the first two moments of the model}
+\item{moments}{A numeric vector containing the first two moments of the model}
 }
 \value{
-#'Returns mean and sd for norm
-Returns mu and sigma for logitnorm
-Returns shape1 (alpha) and shape2 (beta) for beta
+Returns the two parameters for each model.
+mean and sd for norm
+mu and sigma for logitnorm
+shape1 (alpha) and shape2 (beta) for beta
 }
 \description{
 Calculates the model parameters of interest given the first two moments.

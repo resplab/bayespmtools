@@ -2,12 +2,12 @@
 % Please edit documentation in R/core.R
 \name{riley_samp}
 \alias{riley_samp}
-\title{calculates sample size that achieves target confidence interval widths using Riley's framework}
+\title{Calculates Sample Size that Achieves Target CI Widths}
 \usage{
 riley_samp(target_ciws, parms)
 }
 \arguments{
-\item{target_ciws}{named list containing target confidence interval width for at least one of:
+\item{target_ciws}{Named list containing target confidence interval width for at least one of:
 prev: prevalence
 cstat: c-statistic
 cal_mean: mean calibration
@@ -15,7 +15,7 @@ cal_oe: observed to expected outcome ratio
 cal_int: calibration intercept
 cal_slp: calibration slope}
 
-\item{parms}{list containing model parameters and distribution:
+\item{parms}{List containing model parameters and distribution:
 prev: expected prevalence
 cstat: c-statistic of the model
 dist_type: one of ("logitnorm", "beta, "probitnorm")
@@ -25,11 +25,11 @@ cal_int: calibration intercept
 cal_slp: calibration slope}
 }
 \value{
-a named list of estimated sample sizes that achieve target confidence interval widths:
+A named list of estimated sample sizes that achieve target confidence interval widths:
 fciw.prev, fciw.cstat, fciw.cal_mean, fciw.cal_oe, fciw.cal_int, fciw.cal_slp
 }
 \description{
-calculates sample size that achieves target confidence interval widths using Riley's framework
+Calculates sample size that achieves target confidence interval widths using Riley's framework
 }
 \examples{
 parameters <- list(

@@ -31,7 +31,7 @@ This tutorial overviews two core functions in this R package: ***bpm_valsamp***,
 
 As a case study, we present sample size calculations for the ISARIC 4C model. The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 @gupta2021isaric. The investigators used electronic hospital records from all 9 health regions of the UK to develop and validate this model. London was left out for external validation while the other 8 regions were used in creating the model.
 
-We assume we plan to validate this study in the London region. Based on the exchengability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK.
+We assume we plan to validate this study in the London region. Based on the exchangeability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK.
 
 ### Computing Evidence and Specifying Targets
 
@@ -40,7 +40,7 @@ The values in the evidence are extracted from meta-analysis of the original repo
 The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, observed-to-expected (O/E) ratio, or mean calibration (difference between average observed and predicted risks - which is the one we use for this example). These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere @gupta2021isaric. Here, we directly use the predictive distributions from this meta-analysis.
 
 ```{r set-seed}
-# Settings the random number seed for reproducibilty.
+# Settings the random number seed for reproducibility
 set.seed(123)
 ```
 
@@ -89,7 +89,7 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
 print(res$N)
 ```
 
-As can be seen above, different components require different sample size estimates. The largest sample size is XXX, dictated by on the assurance desired for the calibration slope criterion.
+As can be seen above, different components require different sample size estimates. The largest sample size is 1171, dictated by on the assurance desired for the calibration slope criterion.
 
 ### Computing precision / VoI for a given sample size (*bpm_valprec*())
 

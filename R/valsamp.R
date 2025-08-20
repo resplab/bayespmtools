@@ -27,6 +27,7 @@
 #' targets <- list(
 #'   eciw.cstat = 0.05,     
 #'   assurance.nb = 0.8       
+#')
 #'
 #' bpm_valsamp(
 #'   evidence = evidence,
