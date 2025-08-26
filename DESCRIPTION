@@ -1,5 +1,5 @@
 Package: bayespmtools
-Title: Bayesian approach to clinical prediction model's development and validation
+Title: Bayesian Approach to Clinical Prediction Model's Development and Validation
 Version: 0.0.1
 Authors@R: 
     c(person(given="Mohsen", family="Sadatsafavi", email="mohsen.sadatsafavi@ubc.ca", role = c("aut", "cre"),
