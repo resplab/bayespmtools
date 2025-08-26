@@ -1,0 +1,71 @@
+---
+title: "Bayesian Power, Assurance, and Value-of-Information Analysis"
+author: ""
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  data: "hawaii"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(reshape2)
+
+my_format <- function(x)
+{
+  round(x,3)
+}
+
+
+
+```
+
+
+```{r, echo=FALSE}
+if(is.null(params$data) | length(params$data)==0)
+{
+  message("No results were generated.")
+  knit_exit()
+}else
+{
+  results <- params$data$results
+  args <- params$data$args
+}
+
+tmp <- as.data.frame(lapply(names(args$targets), strsplit, "[.]"))
+target_rules <- unname(unlist(tmp[1,]))
+target_metrics <- unname(unlist(tmp[2,]))
+target_values <- (args$targets)
+ 
+```
+
+
+
+
+## N
+```{r, echo=FALSE, results='asis'}
+
+tbl <- as.data.frame(t(results$N))
+rownames(tbl) <- "N"
+kable(tbl)
+  
+```
+
+
+## Plots
+
+```{r, echo=FALSE, results='asis'}
+
+n <- dim(results$trace)[2]/2
+
+for(i in 1:n)
+{
+  plot(results$trace[,i], type='l', ylab=colnames(results$trace)[i])
+}
+
+```
+
+
+

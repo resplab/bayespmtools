@@ -3,3 +3,6 @@
 ^analysis$
 ^/analysis$
 ^shiny$
+^README\.Rmd$
+^CRAN-SUBMISSION$
+^cran-comments\.md$
