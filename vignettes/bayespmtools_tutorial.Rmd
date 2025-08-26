@@ -82,6 +82,7 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
                    targets=targets_samp, #Targets (as specified above)
                    n_sim=10000, #Number of Monte Carlo simulations
                    threshold=0.2) #Risk threshold for NB VoI calculations
+
 ```
 
 ```{r print-samp-results}

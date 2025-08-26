@@ -44,6 +44,7 @@ trace: Trace output from stochastic root finding method
 Bayesian sample size calculation for external validation studies of risk prediction models
 }
 \examples{
+\donttest{
 evidence <- list(
   prev = list(type = "beta", mean = 0.4, sd = 0.02),        
   cstat = list(mean = 0.75, sd = 0.03),                    
@@ -59,7 +60,8 @@ targets <- list(
 bpm_valsamp(
   evidence = evidence,
   targets = targets,
-  n_sim = 200,
-  threshold = 0.25
+  n_sim = 1000,
+  threshold = 0.2
 )
+}
 }

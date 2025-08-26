@@ -4,7 +4,7 @@
 \name{bayespmtools-package}
 \alias{bayespmtools}
 \alias{bayespmtools-package}
-\title{bayespmtools: Bayesian approach to clinical prediction model's development and validation}
+\title{bayespmtools: Bayesian Approach to Clinical Prediction Model's Development and Validation}
 \description{
 Bayesian power, sample size, and value-analysis calculator for risk prediction models.
 }
