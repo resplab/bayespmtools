@@ -1,3 +1,45 @@
+#'Bayesian Precision/VoI Calculator
+#'
+#'@description Bayesian Precision/VoI calculator for external validation studies of risk prediction models at a given sample size
+#'
+#'@param N Numeric vector of sample sizes to evaluate
+#'@param evidence A named list with prior evidence parameters
+#'@param targets list of metrics to compute:
+#'  fciw.cstat, fciw.cal_slp: Boolean value for frequentist CI width for cstat and calibration slope. Default is True
+#'  eciw.cstat, eciw.cal_oe: Boolean value for expected CI width for cstat, and observed-to-expected ratio. Default it True
+#'  qciw.cal_oe: Vector of quantile of CI width for observed-to-expected ratio. Default is 0.9
+#'  assurance.nb: Boolean value for Net benefit assurance
+#'  voi.nb: Boolean value for Value of Information for net benefit
+#'@param n_sim number of Monte Carlo simulations. Default is 1000
+#'@param method method to calculate pre-posterior distribution of 95% confidence intervals. One of "sample", "2s"; default is "sample"
+#'@param threshold Threshold used for decision rules and NB calculations. Required if `voi.nb` or `assurance.nb` are requested.
+#'@param dist_type Distribution type for prevalence. Default is "logitnorm"
+#'@param impute_cor Boolean value to induce correlation. Default is True
+#'@param ex_args List of extra arguments.
+#'@return A list containing:
+#'   fciw: Frequentist confidence interval widths (if requested)
+#'   eciw: Expected posterior CI widths (if requested)
+#'   qciw: Quantile posterior CI widths (if requested)
+#'   voi: Expected value of information metrics (EVPI, EVSI)
+#'   assurance: Net benefit assurance statistics
+#'   sample: The full Monte Carlo sample used in computations
+#'   evidence: Processed evidence object
+#'@examples
+#' evidence <- list(
+#'   prev = list(type = "beta", mean = 0.38, sd = 0.01),  # tight prior for stability
+#'   cstat = list(type="beta", mean = 0.7, sd = 0.05),
+#'   cal_mean = list(mean = 0, sd = 0.3),
+#'   cal_slp = list(mean = 0.8, sd = 0.3)
+#' )
+#' 
+#' bpm_valprec(
+#'   N = c(1000, 1500),
+#'   evidence = evidence,
+#'   targets = list(fciw.cstat = TRUE),
+#'   impute_cor = FALSE,    # prevent ROC crashes
+#'   n_sim = 100            # faster and safer on CRAN
+#' )
+#' 
 #' @export
 bpm_valprec <- function(N, evidence, targets=list(fciw.cstat=T, fciw.cal_slp=T, eciw.cstat=T, eciw.cal_oe=T, qciw.cal_oe=c(0.9), assurance.nb=T, voi.nb=T),
                      n_sim=1000, 
@@ -161,7 +203,7 @@ bpm_valprec <- function(N, evidence, targets=list(fciw.cstat=T, fciw.cal_slp=T, 
       }
       if(target_rules[bciws[i]]=="qciw")
       {
-        out$qciw[[target_metrics[bciws[i]]]] <- apply(ciws[[target_metrics[bciws[i]]]], 2, quantile, target_values[[bciws[i]]][2])
+        out$qciw[[target_metrics[bciws[i]]]] <- apply(ciws[[target_metrics[bciws[i]]]], 2, quantile, target_values[[bciws[i]]][1])
       }
     }
     

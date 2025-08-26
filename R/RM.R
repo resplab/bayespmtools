@@ -8,7 +8,7 @@ find_n_RM <- function(sample, target_rules, target_metrics, target_values, N0=10
     base_parms$dist_type <- sample[1,'dist_type']
     base_parms$prev <- mean(sample$prev)
     base_parms$cstat <- mean(sample$cstat)
-    tmp <- mcmapper::mcmap(c(base_parms$prev, base_parms$cstat), type=dist_type)$valu
+    tmp <- mcmapper::mcmap(c(base_parms$prev, base_parms$cstat), type=base_parms$dist_type)$valu
     base_parms$dist_parm1 <- tmp[1]; base_parms$dist_parm2 <- tmp[2]
     base_parms$cal_slp <- mean(sample$cal_slp)
     base_parms$cal_int <- mean(sample$cal_int)

@@ -11,6 +11,7 @@
 #' @import mc2d
 #' @import cobs
 #' @import quantreg
-#' @importFrom stats binomial coef cor dbeta glm integrate optim pbeta pnorm predict qnorm quantile rbeta rbinom rnorm t.test uniroot
+#' @importFrom graphics lines
+#' @importFrom stats binomial coef cor dbeta glm integrate optim pbeta pnorm predict qnorm quantile rbeta rbinom rnorm t.test uniroot loess
 ## usethis namespace: end
 NULL

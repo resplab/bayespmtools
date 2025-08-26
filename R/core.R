@@ -1,16 +1,21 @@
-
 logit <- function(x) {log(x/(1-x))}
 expit <- function(x) {1/(1+exp(-x))}
 
-
-
-
+#' Mean and Variance Calculator
+#' 
+#' @description Calculates the first two moments (mean and variance) of the given model type and parameters.
+#' @param type The distribution type, one of c("norm", "beta", "logitnorm", "probitnorm").
+#' @param parms A numeric vector containing parameters relevant to the model.
+#' @return A numeric vector representing the mean and variance.
+#' @examples
+#' moments("norm", c(0, 1))
+#' moments("beta", c(1, 1))
 #'@export
 moments <- function(type, parms) {
   # Check if the input values are valid
   if(type=="norm")
   {
-    return(c(m=parms[1], v=sqrt(parms[2])))
+    return(c(m=parms[1], v=(parms[2])^2))
   }
   if(type=="beta")
   {
@@ -31,9 +36,17 @@ moments <- function(type, parms) {
 }
 
 
-
-
-
+#'Calculates the Model Parameters Given Moments
+#'
+#'@description Calculates the model parameters of interest given the first two moments. 
+#'@param type The distribution type, one of c("norm", "beta", "logitnorm").
+#'@param moments A numeric vector containing the first two moments of the model
+#'@return Returns the two parameters for each model.
+#'  mean and sd for norm
+#'  mu and sigma for logitnorm
+#'  shape1 (alpha) and shape2 (beta) for beta
+#'@examples 
+#'inv_moments("norm", c(0,1))
 #'@export
 inv_moments <- function(type, moments) {
   # Check if the input values are valid
@@ -98,6 +111,16 @@ inv_moments <- function(type, moments) {
   }
 }
 
+#'Calculates the Model Parameters Given Quantile
+#' 
+#'@description
+#'Calculate the model parameters given the distribution type, mean, quantile, and percentile.
+#'@param type The distribution type, one of c("norm", "beta", "logitnorm", "probitnorm").
+#'@param m Mean of the of distribution.
+#'@param q The quantile value.
+#'@param p The percentile at which the quantile occurs.
+#'@return The model parameters of the given type.
+#'@examples inv_mean_quantile("beta", 0.5, 0.25, 0.25)
 #'@export
 inv_mean_quantile <- function(type, m, q, p)
 {
@@ -127,8 +150,16 @@ inv_mean_quantile <- function(type, m, q, p)
   out
 }
 
-
-
+#' Calculates the C-statistic of Model
+#' 
+#' @description Calculates the c-statistic given the model type and parameters.
+#' @param type A character string; one of c("beta", "logitnorm", "probitnorm") indicating the model type.
+#' @param parms A numeric vector containing parameters relevant to the model.
+#' @param m Mean, default is NULL
+#' @return The C-statistic
+#' @examples
+#' calc_cstat("norm", c(0,2))
+#' @export
 calc_cstat <- function(type, parms, m=NULL) #For now we assume we know m
 {
   if(type=="logitnorm")
@@ -151,10 +182,17 @@ calc_cstat <- function(type, parms, m=NULL) #For now we assume we know m
 }
 
 
-
-
-
-
+#'Infer Calibration Intercept from Mean Calibration
+#'
+#'@description Infer calibration intercept from mean calibration given a fixed calibration slope and a given distribution for calibrated risks
+#'@param dist_type The distribution type, one of c("logitnorm", "probitnorm", "beta").
+#'@param dist_parms The two parameters that index the type.
+#'@param cal_mean The mean calibration.
+#'@param cal_slp The calibration slope.
+#'@param prev Outcome prevalence. Optional; if not provided, estimate is as the expected value of the distribution of calibrated risks.
+#'@return The estimated calibration intercept
+#'@examples
+#'infer_cal_int_from_mean("beta", c(1,1), 1 ,1.1, 0.25)
 #'@export
 infer_cal_int_from_mean <- function(dist_type, dist_parms, cal_mean, cal_slp, prev=NULL) #TODO: prev
 {
@@ -189,8 +227,17 @@ infer_cal_int_from_mean <- function(dist_type, dist_parms, cal_mean, cal_slp, pr
 }
 
 
-
-
+#'Infer Calibration Intercept from O/E ratio
+#' 
+#'@description Infer calibration intercept from observed-to-expected outcome ratio given a fixed calibration slope and a given distribution for calibrated risks
+#'@param dist_type The distribution type, one of c("logitnorm", "probitnorm", "beta").
+#'@param dist_parms The two parameters that index the type.
+#'@param cal_oe The observed-to-expected outcome ratio.
+#'@param cal_slp The calibration slope.
+#'@param prev Outcome prevalence. Optional; if not provided, estimate is as the expected value of the distribution of calibrated risks.
+#'@return The estimated calibration intercept
+#'@examples
+#'infer_cal_int_from_oe("beta", c(1,1), 0.9, 1.1, 0.25)
 #'@export
 infer_cal_int_from_oe <- function(dist_type, dist_parms, cal_oe, cal_slp, prev=NULL) #TODO: prev
 {
@@ -224,10 +271,18 @@ infer_cal_int_from_oe <- function(dist_type, dist_parms, cal_oe, cal_slp, prev=N
   unname(res$par)
 }
 
-
-
-
-
+#'Calculates the Sensitivity and Specificity
+#'
+#'@description Calculate the sensitivity and specificity of the model at given threshold
+#'@param dist_type The distribution type, one of c("logitnorm", "beta", "probitnorm").
+#'@param dist_parms Vector of the two parameters of interest given the distribution.
+#'@param cal_int The calibration intercept.
+#'@param cal_slp The calibration slope.
+#'@param threshold The risk threshold
+#'@param prev The outcome prevalence, the expectation of the model
+#'@return A vector containing sensitivity and specificity
+#'@examples
+#'calc_se_sp("beta", c(1,1), 0.9, 0.75, 0.5, 0.5)
 #'@export
 calc_se_sp <- function(dist_type, dist_parms, cal_int, cal_slp, threshold, prev) #TODO: prev should be optional
 {
@@ -258,20 +313,23 @@ calc_se_sp <- function(dist_type, dist_parms, cal_int, cal_slp, threshold, prev)
   return(c(se=max(0,min(se,1)), sp=max(0,min(sp,1))))
 }
 
-
-
-
-
-
-
-
-
-
+#' Calculates Correlation
+#'
+#'@description Calculates correlation based on simulated data
+#'@param dist_type The distribution type
+#'@param dist_parms The two parameters of interest for the given distribution type
+#'@param cal_int The calibration intercept.
+#'@param cal_slp The calibration slope.
+#'@param n number of observations for each simulation.
+#'@param n_sim number of simulations
+#'@return correlation among the simulated data
+#'@examples
+#'infer_correlation("beta", c(1,1), 1, 0.5, 10, 10)
 #'@export
 infer_correlation <- function(dist_type, dist_parms, cal_int, cal_slp, n, n_sim)
 {
-  require(pROC)
-  require(mcmapper)
+  # require(pROC)
+  # require(mcmapper)
 
   out <- matrix(NA, nrow=n_sim, ncol=5)
   colnames(out) <- c("prev", "cstat", "cal_mean", "cal_int", "cal_slp")
@@ -283,7 +341,7 @@ infer_correlation <- function(dist_type, dist_parms, cal_int, cal_slp, n, n_sim)
     pi <- expit((logit(p)-cal_int)/cal_slp)
     df <- cbind(pi=pi,Y=Y)
     out[i,]<-c(mean(df[2]),
-               roc(df[,2]~df[,1], quiet=TRUE)$auc,
+               pROC::roc(df[,2]~df[,1], quiet=TRUE)$auc,
                mean(df[2]-df[1]),
                coef(glm(df[,2]~logit(df[,1]), family=binomial(link="logit")))[1:2])
   }
@@ -292,34 +350,46 @@ infer_correlation <- function(dist_type, dist_parms, cal_int, cal_slp, n, n_sim)
 }
 
 
+#'
+# express_evidence <- function(evidence, round_digits=3)
+# {
+#   out <- "";
+#   for(i in 1:length(evidence))
+#   {
+#    nm <- names(evidence)[i]
+#     item <- evidence[[i]]
+#     out <- paste0(out, nm, "~", item$type, "(", round(item$parms[1], round_digits), ",", round(item$parms[2], round_digits),")\n")
+#   }
+#   
+#   paste(out, collapse="\n")
+# }
 
 
-
-
-
-
-
-#' @export
-express_evidence <- function(evidence, round_digits=3)
-{
-  out <- "";
-  for(i in 1:length(evidence))
-  {
-    nm <- names(evidence)[i]
-    item <- evidence[[i]]
-    out <- paste0(out, nm, "~", item$type, "(", round(item$parms[1], round_digits), ",", round(item$parms[2], round_digits),")\n")
-  }
-  
-  paste(out, collapse="\n")
-}
-
-
-
-
-
-
-#N can be vector!
-#' @export
+#'Calculates Approximate Variances and Covariance for Performance Metrics
+#'
+#'@description Calculates approximate variances performance metrics and covariance of calibration intercept and slope using the Riley framework
+#'@param N sample size of the validation dataset
+#'@param parms list containing model and distribution parameters:
+#'  prev: expected prevalence
+#'  cstat: c-statistic of the model
+#'  dist_type: one of ("logitnorm", "beta, "probitnorm")
+#'  dist_parm1: first parameter of the distribution
+#'  dist_parm2: second parameter of the distribution
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@return list of approximate variances and covariance of the performance metrics.
+#'@examples 
+#'parameters <- list(
+#'   prev=0.5, 
+#'   cstat=0.75, 
+#'   dist_type="beta", 
+#'   dist_parm1=1,
+#'   dist_parm2=1, 
+#'   cal_int=0, 
+#'   cal_slp=1)
+#'    
+#'calc_riley_vars(N=100, parms=parameters)
+#'@export
 calc_riley_vars <- function(N, parms)
 {
   prev <- parms$prev
@@ -328,13 +398,14 @@ calc_riley_vars <- function(N, parms)
   dist_parms <- c(parms$dist_parm1,parms$dist_parm2)
   cal_int <- parms$cal_int
   cal_slp <- parms$cal_slp
+  bad_place <- NULL
 
   if(dist_type=="logitnorm")
   {
     #tryCatch({
       E_pi <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(expit((logit(x)-cal_int)/cal_slp))},0,1)$value
-      I_a <- integrate(function(x){ mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(x*(1-x))}, 0, 1)$value
-      I_b <- integrate(function(x){ mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
+      I_a <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(x*(1-x))}, 0, 1)$value
+      I_b <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
       I_ab <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)*(x*(1-x)))}, 0, 1)$value
     #}, error=function(e){bad_place$parms <<- parms})
   }
@@ -346,6 +417,7 @@ calc_riley_vars <- function(N, parms)
     I_b <- integrate(function(x){ dbeta(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
     I_ab <- integrate(function(x){dbeta(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)*(x*(1-x)))}, 0, 1)$value
     }, error=function(e){bad_place$parms <<- parms})
+    
   }
   if(dist_type=="probitnorm")
   {
@@ -367,11 +439,38 @@ calc_riley_vars <- function(N, parms)
   list(prev=v_prev,cstat=v_cstat, cal_mean=v_cal_mean, cal_oe=v_cal_oe,  cal_int=v_cal_int, cal_slp=v_cal_slp, cov_int_slp=cov_int_slp)
 }
 
-
-
-
-
-#' @export
+#'Calculates Sample Size that Achieves Target CI Widths
+#'
+#'@description Calculates sample size that achieves target confidence interval widths using Riley's framework
+#'@param target_ciws Named list containing target confidence interval width for at least one of:
+#'  prev: prevalence
+#'  cstat: c-statistic
+#'  cal_mean: mean calibration
+#'  cal_oe: observed to expected outcome ratio
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@param parms List containing model parameters and distribution:
+#'  prev: expected prevalence
+#'  cstat: c-statistic of the model
+#'  dist_type: one of ("logitnorm", "beta, "probitnorm")
+#'  dist_parm1: first parameter of the distribution
+#'  dist_parm2: second parameter of the distribution
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@return A named list of estimated sample sizes that achieve target confidence interval widths:
+#'  fciw.prev, fciw.cstat, fciw.cal_mean, fciw.cal_oe, fciw.cal_int, fciw.cal_slp
+#'@examples 
+#'parameters <- list(
+#'   prev=0.5, 
+#'   cstat=0.75, 
+#'   dist_type="beta", 
+#'   dist_parm1=1, 
+#'   dist_parm2=1, 
+#'   cal_int=0, 
+#'   cal_slp=1)
+#'   
+#'riley_samp(target_ciws=list(prev=0.05, cstat=0.05) ,parms=parameters)
+#'@export
 riley_samp <- function(target_ciws, parms)
 {
   out <- list()
@@ -427,17 +526,20 @@ riley_samp <- function(target_ciws, parms)
     {
       #tryCatch({
       #E_pi <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(expit((logit(x)-cal_int)/cal_slp))},0,1)$value
-      I_a <- integrate(function(x){ mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(x*(1-x))}, 0, 1)$value
-      I_b <- integrate(function(x){ mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
+      I_a <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(x*(1-x))}, 0, 1)$value
+      I_b <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)^2*(x*(1-x)))}, 0, 1)$value
       I_ab <- integrate(function(x){mcmapper::dlogitnorm(x,dist_parms[1],dist_parms[2])*(((logit(x)-cal_int)/cal_slp)*(x*(1-x)))}, 0, 1)$value
       #}, error=function(e){bad_place$parms <<- parms})
     }
     if(dist_type=="beta")
     {
       #E_pi <- integrate(function(x){x*dbeta(expit(logit(x)*cal_slp+cal_int),dist_parms[1],dist_parms[2])}, 0, 1,intercept=cal_int, slope=cal_slp)$value
-      I_a <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*(exp(cal_int+x*cal_slp)/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
-      I_b <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x^2*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
-      I_ab <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+      # I_a <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*(exp(cal_int+x*cal_slp)/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+      # I_b <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x^2*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+      # I_ab <- integrate(function(x){mcmapper::dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+      I_a <- integrate(function(x){dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*(exp(cal_int+x*cal_slp)/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+      I_b <- integrate(function(x){dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x^2*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
+      I_ab <- integrate(function(x){dbeta(expit(logit(x)), dist_parms[1], dist_parms[2])*((x*exp(cal_int+x*cal_slp))/(1+exp(cal_int+x*cal_slp))^2)}, 0, 1)$value
     }
     if(dist_type=="probitnorm")
     {
@@ -454,11 +556,36 @@ riley_samp <- function(target_ciws, parms)
 }
 
 
-
-
-
-
-#N can be vector
+#'Calculates Pre-Posterior Distribution of 95% CI Widths Using Two-step Method
+#'
+#'@description Calculates pre-posterior distribution of 95% CI widths using two-step method. 
+#'@param N A vector of sample sizes
+#'@param parms Parameters for the distribution containing:
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'  prev: prevalence
+#'  dist_type: distribution type
+#'  cstat: c-statistic 
+#'  dist_type: one of ("logitnorm", "beta, "probitnorm")
+#'  dist_parm1: first parameter of the distribution
+#'  dist_parm2: second parameter of the distribution
+#'@return List of length N, of vectors containing 95% confidence interval width for each of:
+#'  cstat: c-statistic
+#'  cal_oe: observed to expected ratio
+#'  cal_mean: mean calibration
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@examples
+#'parameters <- list(
+#' prev = 0.2, 
+#' cstat = 0.75, 
+#' dist_type="beta", 
+#' dist_parm1=1, 
+#' dist_parm2=2, 
+#' cal_int = 0, 
+#' cal_slp = 1)
+#' 
+#'calc_ciw_2s(N=c(100,300,500), parms=parameters)
 #'@export
 calc_ciw_2s <- function(N, parms)
 {
@@ -525,13 +652,30 @@ calc_ciw_2s <- function(N, parms)
        cal_slp=ciw_cal_slp)
 }
 
-
-
-#N can be vector
+#'Calculates Pre-Posterior Distribution of 95% CI Widths Using Sampling-based Simulation 
+#'
+#'@description Calculates pre-posterior distribution of 95% CI widths using sampling-based simulation 
+#'@param N A vector of sample sizes
+#'@param parms Parameters for the distribution containing:
+#'  prev: prevalence
+#'  dist_type: distribution type
+#'  dist_parm1: first parameter of distribution
+#'  dist_parm2: second parameter of distribution
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@return List of length N, of vectors containing 95% confidence interval width for each of:
+#'  cstat: c-statistic
+#'  cal_oe: observed to expected ratio
+#'  cal_mean: mean calibration
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@examples
+#'parameters<-list(prev = 0.2, dist_type="beta", dist_parm1=2, dist_parm2=4, cal_int = 0, cal_slp = 1)
+#'calc_ciw_sample(N=c(100,300,500), parms=parameters)
 #'@export
 calc_ciw_sample <- function(N, parms)
 {
-  require(fastLogisticRegressionWrap)
+  # require(fastLogisticRegressionWrap)
   se_cstat <- se_cal_oe <- se_cal_mean <- se_cal_int <- se_cal_slp <- rep(NA, length(N))
 
   prev <- parms$prev
@@ -554,7 +698,7 @@ calc_ciw_sample <- function(N, parms)
     O <- sum(Y[1:n])
     se_cal_oe[i] <- sqrt((1-O/n)/O)
     se_cal_mean[i] <- t.test(Y[1:n]-pi[1:n])$stderr
-    reg <- fast_logistic_regression(logit_pi[1:n,],Y[1:n],do_inference_on_var="all")
+    reg <- fastLogisticRegressionWrap::fast_logistic_regression(logit_pi[1:n,],Y[1:n],do_inference_on_var="all")
     se_cal_int[i] <- reg$se[1]
     se_cal_slp[i] <- reg$se[2]
 
@@ -571,8 +715,34 @@ calc_ciw_sample <- function(N, parms)
 
 
 
-
-
+#'#'Calculates Pre-Posterior Distribution of 95% CI Widths Based on Given Method
+#'
+#'@description Calculates pre-posterior distribution of 95% CI widths based on given method
+#'@param N A vector of sample sizes
+#'@param parms_sample Matrix of parameters for the distribution each row with appropriate parameters:
+#'  cstat: c-statistic
+#'  prev: prevalence
+#'  dist_type: distribution type
+#'  dist_parm1: first parameter of distribution
+#'  dist_parm2: second parameter of distribution
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@param method Method to calculate 95% confident interval width, one of sample, 2s
+#'@return List of matrices each with dimension (number of rows in parms_sample x length N) containing 95% confidence interval width for each of:
+#'  cstat: c-statistic
+#'  cal_oe: observed to expected ratio
+#'  cal_mean: mean calibration
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@examples
+#'parameters <- data.frame(cstat=c(0.75, 0.8), 
+#'                         prev=c(0.2,0.3), 
+#'                         dist_type=c("beta", "beta"), 
+#'                         dist_parm1=c(0.9, 1),
+#'                         dist_parm2=c(1.5,2),
+#'                         cal_int=c(0, 0.5), 
+#'                         cal_slp=c(1,0.9))
+#'calc_ciw_mc(N=c(100,300,500), parms_sample=parameters, method="2s")
 #'@export
 calc_ciw_mc <- function(N, parms_sample, method)
 {
@@ -607,18 +777,29 @@ calc_ciw_mc <- function(N, parms_sample, method)
   list(cstat=ciw_cstat, cal_oe=ciw_cal_oe, cal_mean=ciw_cal_mean, cal_int=ciw_cal_int, cal_slp=ciw_cal_slp)
 }
 
-
-#Convext monotonically decreasing root finder
+#'Calculates Sample Size Given Target Mean CI
+#'
+#'@description Calculates sample size N, so that the mean confidence interval is equal to given target, assumes function is decreasing and convex
+#'@param target The target mean confidence interval width
+#'@param N Sample sizes corresponding to each row of ciws,=
+#'@param ciws Matrix of confidence intervals widths, each row corresponding to N
+#'@param decreasing Logical. Constraining function to decreasing
+#'@param convex Logical. Constraining function to convex
+#'@return Integer. Estimated sample size needed to achieve the target
+#'@examples
+#'ciw_matrix <- matrix(c(0.09, 0.07, 0.06, 0.05), nrow=1)
+#'find_n_mean(target=0.055, N=c(100, 200, 300, 400), ciws=ciw_matrix)
+#'@export
 find_n_mean <- function(target, N, ciws, decreasing=T, convex=T)
 {
-  require(cobs)
+  # require(cobs)
   
   X <- rep(N, each=nrow(ciws))
   Y <- as.vector(ciws)
   
   constraint <- c(ifelse(decreasing,"decreasing",""),ifelse(convex,"convex",""))
   
-  S <- cobs(X,Y, constraint=c("decrease","convex"))
+  S <- cobs::cobs(X,Y, constraint=c("decrease","convex"))
   #plot(predict(S, seq(min(N),max(N),length.out=100)), type='l')
   
   f <- function(x) {predict(S, z=x)[,2] - target}
@@ -626,17 +807,36 @@ find_n_mean <- function(target, N, ciws, decreasing=T, convex=T)
 }
 
 
-
-#Convext monotonically decreasing root finder
+#'Calculates Sample Size Given Target Quantile
+#'
+#'@description Find sample size N, so that the specified quantile is equal to given target
+#'@param target The desired quantile target value
+#'@param N Sample sizes corresponding to each row of ciws
+#'@param q Desired quantile level, between 0 and 1.
+#'@param ciws A matrix of confidence intervals widths, each row corresponding to N
+#'@return Estimated sample size needed to achieve the target
+#'@importFrom quantreg rqss qss
+#'@examples
+#'ciw_matrix <- matrix(c(
+#'0.09, 0.08, 0.07, 0.06,
+#'0.085, 0.075, 0.065, 0.055,
+#'0.095, 0.085, 0.075, 0.065
+#'), nrow = 3, byrow = TRUE)
+#'
+#'N_vals <- c(100, 200, 300, 400)
+#'
+#'find_n_quantile(target = 0.065, N = N_vals, q = 0.5, ciws = ciw_matrix)
+#'@export
 find_n_quantile <- function(target, N, q, ciws)
 {
-  require(quantreg)
+  # require(quantreg)
+  # library(quantreg)
   
   X <- rep(N, each=nrow(ciws))
   Y <- as.vector(ciws)
+  data <- data.frame(X=X, Y=Y)
   
-  
-  fit <- rqss(Y ~ qss(X, lambda = 1), tau=q)
+  fit <- quantreg::rqss(Y ~ qss(X, lambda = 1), tau=q, data=data)
   
   # plot(X, Y, main = "Non-parametric Quantile Regression", xlab = "X", ylab = "Y")
   # for (i in 1:length(tau)) {
@@ -649,10 +849,21 @@ find_n_quantile <- function(target, N, q, ciws)
 }
 
 
-
-
-
-
+#'Generates Samples From Normal Distribution
+#'
+#'@description generates samples from a normal distribution using marginal means, variances, and covariance
+#'@param n Number of samples to be generated
+#'@param mu1 Mean of first variable
+#'@param mu2 Mean of second variable
+#'@param var1 Variance of first variable
+#'@param var2 Variance of second variable
+#'@param cov Covariance between the two variables
+#'@return Matrix of nx2 where
+#'  column 1 contains samples for the first variable, and
+#'  column 2 contains samples for the second variable conditioned on the first
+#'@examples
+#'rbnorm(n = 1000, mu1 = 0, mu2 = 0, var1 = 1, var2 = 1, cov = 0.5)
+#'@export
 rbnorm <- function(n, mu1, mu2, var1, var2, cov) {
 
   # Calculate standard deviations and correlation from variances and covariance
@@ -674,21 +885,20 @@ rbnorm <- function(n, mu1, mu2, var1, var2, cov) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Creates a clean list including type, parms, moments
+#'Creates a Standardized List Including type, parms, moments
+#'@description Standardizes element names, and creates a clean list of names
+#'@param element Named list with type (e.g "beta", "norm", logitnorm"), and one of valid combination of parameters:
+#'  - "mean" and "var"
+#'  - "m" and "v"
+#'  - "mean" and "sd"
+#'  - "m" and "sd"
+#'  - "alpha" and "beta"
+#'  - "mean" and "cih"
+#'  - "m" and "cih"
+#'@return an element with type, params and moments.
+#'@examples 
+#'process_evidence_element(list(type="norm", mean=0, sd=1))
+#'@export
 process_evidence_element <- function(element)
 {
   e <- list()
@@ -738,8 +948,23 @@ process_evidence_element <- function(element)
   e
 }
 
-
-#' @export
+#'Transforms Evidence Into Standardized Format
+#'
+#'@description Verifies evidence object has correct members, and standardizes it
+#'@param evidence named list of evidence elements including:
+#' prev: prevalence
+#' cstat: c-statistic
+#' cal_slp: calibration slope and,
+#' one of cal_mean (mean calibration), cal_oe (observed to expected ratio), or cal_int (calibration intercept)
+#'@return Modified evidence object that has been standardized and restructured
+#'@examples
+#'evidence <- list(
+#' prev=list(type="beta", mean=0.38, sd=0.2),
+#' cstat=list(mean=0.7, sd=0.05),
+#' cal_int=list(mean=0.2, sd=0.2),
+#' cal_slp=list(mean=0.8, sd=0.3))
+#'process_evidence(evidence=evidence)
+#'@export
 process_evidence <- function(evidence)
 {
   if(is.null(evidence$prev)) {stop("evidence object must have a prev (prevalence) member")}
@@ -773,31 +998,50 @@ process_evidence <- function(evidence)
   
   if(!is.na(cal_mean))
   {
-    if(is.na(cal_parms[[cal_mean]]$type)) { cal_parms[[cal_mean]]$type<-"normal"; message("Assuming normal distirbution for calibration mean")}
+    if(is.null(cal_parms[[cal_mean]]$type)) { cal_parms[[cal_mean]]$type<-"norm"; message("Assuming normal distirbution for calibration mean")}
     evidence$cal_mean <- process_evidence_element(cal_parms[[cal_mean]])
   }
   if(!is.na(cal_int))
   {
-    if(is.na(cal_parms[[cal_int]]$type)) { cal_parms[[cal_int]]$type<-"normal"; message("Assuming normal distirbution for calibration mean")}
+    if(is.null(cal_parms[[cal_int]]$type)) { cal_parms[[cal_int]]$type<-"norm"; message("Assuming normal distirbution for calibration interccept")}
     evidence$cal_int <- process_evidence_element(cal_parms[[cal_int]])
   }
   if(!is.na(cal_slp))
   {
-    if(is.na(cal_parms[[cal_slp]]$type)) { cal_parms[[cal_slp]]$type<-"normal"; message("Assuming normal distirbution for calibration mean")}
+    if(is.null(cal_parms[[cal_slp]]$type)) { cal_parms[[cal_slp]]$type<-"norm"; message("Assuming normal distirbution for calibration slope")}
     evidence$cal_slp <- process_evidence_element(cal_parms[[cal_slp]])
   }
   if(!is.na(cal_oe))
   {
-    if(is.na(cal_parms[[cal_oe]]$type)) { cal_parms[[cal_oe]]$type<-"normal"; message("Assuming normal distirbution for calibration mean")}
+    if(is.na(cal_parms[[cal_oe]]$type)) { cal_parms[[cal_oe]]$type<-"norm"; message("Assuming normal distirbution for O/E ratio")}
     evidence$cal_oe <- process_evidence_element(cal_parms[[cal_oe]])
   }
   
   evidence
 }
 
-
-
-#' @export
+#'Plots Calibration Instability from Simulated Calibration Curves
+#'
+#'@description Simulates calibration curves based on given method, and uses plot to visualize calibration instability.
+#'@param N Number of observations to simulate in each sample
+#'@param sample Data frame with columns:
+#'  dist_type: distribution type
+#'  dist_parm1: first distribution parameter (e.g. mean, alpha, shape1)
+#'  dist_parm2: second distribution parameter (e.g. sd, beta, shape2)
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@param method One of loess or line, on default is loess
+#'@param X Vector of predicted probabilities, on default is 0.01 to 0.99
+#'@return Plot of simulated calibration curves
+#'@examples
+#'sample <- data.frame(
+#' dist_type = rep("beta", 3),
+#' dist_parm1 = c(1,2,3),
+#' dist_parm2 = c(3,4,5),
+#' cal_int = c(0, 0.05, 0.1),
+#' cal_slp = c(1, 0.9, 0.8))
+#'plot_cal_instability(N=200, sample=sample)
+#'@export
 plot_cal_instability <- function(N, sample, method="loess", X=(1:99)/100)
 {
   out <- matrix(NA, nrow=nrow(sample), ncol=length(X))
@@ -830,11 +1074,28 @@ plot_cal_instability <- function(N, sample, method="loess", X=(1:99)/100)
   lines(c(0,1),c(0,1))
 }
 
-
-
-
-
-#' @export
+#'Plots Calibration Distance from Simulation Curves
+#'
+#'@description simulates calibration curves based on given method, and uses plot to visualize calibration distance (difference between predicted and observed)
+#'@param N Number of observations to simulate in each sample
+#'@param sample Data frame with columns:
+#'  dist_type: distribution type
+#'  dist_parm1: first distribution parameter (e.g. mean, alpha, shape1)
+#'  dist_parm2: second distribution parameter (e.g. sd, beta, shape2)
+#'  cal_int: calibration intercept
+#'  cal_slp: calibration slope
+#'@param method One of loess or line, on default is loess
+#'@param X Vector of predicted probabilities, on default is 0.01 to 0.99
+#'@return Plot of simulated calibration curves
+#'@examples
+#'sample <- data.frame(
+#' dist_type = rep("beta", 3),
+#' dist_parm1 = c(1,2,3),
+#' dist_parm2 = c(3,4,5),
+#' cal_int = c(0, 0.05, 0.1),
+#' cal_slp = c(1, 0.9, 0.8))
+#'plot_cal_distance(N=200, sample=sample)
+#'@export
 plot_cal_distance <- function(N, sample, method="loess", X=(1:99)/100)
 {
   out <- matrix(NA, nrow=nrow(sample), ncol=length(X))

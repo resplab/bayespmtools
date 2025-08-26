@@ -6,10 +6,15 @@
 \alias{bayespmtools-package}
 \title{bayespmtools: Bayesian approach to clinical prediction model's development and validation}
 \description{
-BAyesian power, sample size, and value-analysis calcualtor for risk prediction models.
+Bayesian power, sample size, and value-analysis calculator for risk prediction models.
 }
 \author{
 \strong{Maintainer}: Mohsen Sadatsafavi \email{mohsen.sadatsafavi@ubc.ca} (\href{https://orcid.org/0000-0002-0419-7862}{ORCID})
+
+Other contributors:
+\itemize{
+  \item Anna Luo \email{annaluo@student.ubc.ca} [contributor]
+}
 
 }
 \keyword{internal}

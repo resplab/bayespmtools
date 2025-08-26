@@ -3,3 +3,4 @@
 ^analysis$
 ^/analysis$
 ^shiny$
+^README\.Rmd$
