@@ -111,7 +111,7 @@ prec <- bpm_valprec(
   dist_type="logitnorm", #Distribution type for calibrated risks
   method="sample", #Sample based or tw-level ("2s") method
   targets = targets_prec, #Targets specified above
-  n_sim = 1000, #Number of Monte Carlo simulations
+  n_sim = 10000, #Number of Monte Carlo simulations
   threshold=0.2) #Risk threshold for NB VoI calculations)
 
 ```
