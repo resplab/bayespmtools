@@ -1,12 +1,12 @@
 Package: bayespmtools
-Title: Bayesian Approach to Clinical Prediction Model's Development and Validation
+Title: Bayesian Sample Size Considerations for Risk Prediction Models
 Version: 0.0.1
 Authors@R: 
     c(person(given="Mohsen", family="Sadatsafavi", email="mohsen.sadatsafavi@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0419-7862")), 
       person(given="Anna", family="Luo", email="annaluo@student.ubc.ca", role="ctb"))
 Maintainer: Mohsen Sadatsafavi <mohsen.sadatsafavi@ubc.ca>
-Description: Bayesian power, sample size, and value-analysis calculator for risk prediction models.
+Description: Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multivariable preidction models using the approach proposed by Sadatsafavi et al (2025) <doi:10.48550/arXiv.2504.15923>.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
