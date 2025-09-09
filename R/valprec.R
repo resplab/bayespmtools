@@ -41,7 +41,7 @@
 #' )
 #' 
 #' @export
-bpm_valprec <- function(N, evidence, targets=list(fciw.cstat=T, fciw.cal_slp=T, eciw.cstat=T, eciw.cal_oe=T, qciw.cal_oe=c(0.9), assurance.nb=T, voi.nb=T),
+bpm_valprec <- function(N, evidence, targets=list(fciw.cstat=T, fciw.cal_slp=TRUE, eciw.cstat=TRUE, eciw.cal_oe=TRUE, qciw.cal_oe=c(0.9), assurance.nb=TRUE, voi.nb=TRUE),
                      n_sim=1000, 
                      method="sample", 
                      threshold=NULL, 
