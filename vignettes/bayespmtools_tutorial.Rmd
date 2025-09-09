@@ -75,7 +75,7 @@ targets_samp <- list(eciw.cstat=0.1,
 
 This is the main function call that computes the sample size requirements based on our evidence and targets. It returns the required sample size for external validation for each parameter requested in the targets.
 
-```{r bpm_valsamp}
+```{r eval=FALSE}
 res <- bpm_valsamp(evidence=evidence, #Evidence as a list
                    dist_type="logitnorm", #Distribution type for calibrated risks
                    method="sample", #Sample based or tw-level ("2s") method
@@ -87,6 +87,7 @@ res <- bpm_valsamp(evidence=evidence, #Evidence as a list
 
 ```{r print-samp-results}
 #Print results
+res <- readRDS("precomputed/samp_result.rds")
 print(res$N)
 ```
 
@@ -101,10 +102,13 @@ For this example, we will be using the outputs from ***bpm_valsamp*** to verify 
 The *N_prec* variable includes the output sample sizes from ***bpm_valsamp***.
 
 ```{r}
-N_prec = c(351, 430, 1064, 399, 522, 1181, 306)
+N_prec = c(363, 424, 1071, 401, 521, 1171, 306)
 
 targets_prec = list(eciw.cstat = T, eciw.cal_oe = T, eciw.cal_slp = T, qciw.cstat = 0.9, qciw.cal_oe = 0.9, qciw.cal_slp = 0.9, assurance.nb=T)
 
+```
+
+```{r eval=FALSE}
 prec <- bpm_valprec(
   N = N_prec, #Sample sizes
   evidence = evidence, #Evidence as a list
@@ -112,7 +116,7 @@ prec <- bpm_valprec(
   method="sample", #Sample based or tw-level ("2s") method
   targets = targets_prec, #Targets specified above
   n_sim = 10000, #Number of Monte Carlo simulations
-  threshold=0.2) #Risk threshold for NB VoI calculations)
+  threshold=0.2) #Risk threshold for NB VoI calculations
 
 ```
 
@@ -131,6 +135,7 @@ assurance0 is the assurance before any validation studies given our current unce
 ```{r include = FALSE}
 ### This code will not show in the vignette
 ### Used to round the results so that the tutorial is easier to follow
+prec <- readRDS("precomputed/prec_result.rds")
 
 prec$eciw$cstat <- round(prec$eciw$cstat, 3)
 prec$eciw$cal_oe <- round(prec$eciw$cal_oe, 3)
