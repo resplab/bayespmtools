@@ -17,7 +17,3 @@ A numeric vector representing the mean and variance.
 \description{
 Calculates the first two moments (mean and variance) of the given model type and parameters.
 }
-\examples{
-moments("norm", c(0, 1))
-moments("beta", c(1, 1))
-}

@@ -23,7 +23,3 @@ Integer. Estimated sample size needed to achieve the target
 \description{
 Calculates sample size N, so that the mean confidence interval is equal to given target, assumes function is decreasing and convex
 }
-\examples{
-ciw_matrix <- matrix(c(0.09, 0.07, 0.06, 0.05), nrow=1)
-find_n_mean(target=0.055, N=c(100, 200, 300, 400), ciws=ciw_matrix)
-}

@@ -31,15 +31,3 @@ fciw.prev, fciw.cstat, fciw.cal_mean, fciw.cal_oe, fciw.cal_int, fciw.cal_slp
 \description{
 Calculates sample size that achieves target confidence interval widths using Riley's framework
 }
-\examples{
-parameters <- list(
-  prev=0.5, 
-  cstat=0.75, 
-  dist_type="beta", 
-  dist_parm1=1, 
-  dist_parm2=1, 
-  cal_int=0, 
-  cal_slp=1)
-  
-riley_samp(target_ciws=list(prev=0.05, cstat=0.05) ,parms=parameters)
-}

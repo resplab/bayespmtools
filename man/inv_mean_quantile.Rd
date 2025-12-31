@@ -21,6 +21,3 @@ The model parameters of the given type.
 \description{
 Calculate the model parameters given the distribution type, mean, quantile, and percentile.
 }
-\examples{
-inv_mean_quantile("beta", 0.5, 0.25, 0.25)
-}

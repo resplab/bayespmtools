@@ -19,6 +19,3 @@ The C-statistic
 \description{
 Calculates the c-statistic given the model type and parameters.
 }
-\examples{
-calc_cstat("norm", c(0,2))
-}

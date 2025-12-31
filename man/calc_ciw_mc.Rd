@@ -31,13 +31,3 @@ cal_slp: calibration slope
 \description{
 Calculates pre-posterior distribution of 95\% CI widths based on given method
 }
-\examples{
-parameters <- data.frame(cstat=c(0.75, 0.8), 
-                        prev=c(0.2,0.3), 
-                        dist_type=c("beta", "beta"), 
-                        dist_parm1=c(0.9, 1),
-                        dist_parm2=c(1.5,2),
-                        cal_int=c(0, 0.5), 
-                        cal_slp=c(1,0.9))
-calc_ciw_mc(N=c(100,300,500), parms_sample=parameters, method="2s")
-}

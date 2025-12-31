@@ -27,6 +27,3 @@ column 2 contains samples for the second variable conditioned on the first
 \description{
 generates samples from a normal distribution using marginal means, variances, and covariance
 }
-\examples{
-rbnorm(n = 1000, mu1 = 0, mu2 = 0, var1 = 1, var2 = 1, cov = 0.5)
-}

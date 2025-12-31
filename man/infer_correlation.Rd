@@ -25,6 +25,3 @@ correlation among the simulated data
 \description{
 Calculates correlation based on simulated data
 }
-\examples{
-infer_correlation("beta", c(1,1), 1, 0.5, 10, 10)
-}

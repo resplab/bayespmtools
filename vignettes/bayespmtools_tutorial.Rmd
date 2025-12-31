@@ -44,13 +44,16 @@ The Bayesian sample size calculation approach requires specifying prior distribu
 set.seed(123)
 ```
 
-Specified evidence should be a list, with exact naming per below. Note that we are specifying evidence via mean and sd. Other ways of doing so is also possible. Please refer to the help documents for the related functions.
+Specified evidence should be a list of formulas, with exact naming of parameters per below. Currently recognized distributions are norm (Normal), logitnorm(Logit-normal), probitnorm (Probit-normal), and beta (Beta). Note the flexibility in specifying the distributions. If paramters are not named, they are taken as the natural parameters for the distribution. Ohterwise they are internally mapped to the parameters of the distributin. For example, the mean and SD specified for prevalence are internally converted to the two parameters of the Beta distribution.
 
 ```{r load-evidence}
-evidence <- list(prev=list(type="beta", mean=0.428, sd=0.030),
-                 cstat=list(type="logitnorm", mean=0.761, sd=0.006),
-                 cal_mean=list(type="norm", mean=-0.009, sd=0.125),
-                 cal_slp=list(type="norm", mean=0.995, sd = 0.024))
+evidence <- list(
+    prev~beta(mean=0.428, sd=0.03), 
+    cstat~logitnorm (mean=0.761, sd=0.006), 
+    cal_mean~norm(-0.009, 0.125), 
+    cal_slp~norm(0.995, 0.024)
+  )
+
 ```
 
 ### Targets

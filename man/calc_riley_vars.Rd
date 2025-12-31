@@ -24,15 +24,3 @@ list of approximate variances and covariance of the performance metrics.
 \description{
 Calculates approximate variances performance metrics and covariance of calibration intercept and slope using the Riley framework
 }
-\examples{
-parameters <- list(
-  prev=0.5, 
-  cstat=0.75, 
-  dist_type="beta", 
-  dist_parm1=1,
-  dist_parm2=1, 
-  cal_int=0, 
-  cal_slp=1)
-   
-calc_riley_vars(N=100, parms=parameters)
-}

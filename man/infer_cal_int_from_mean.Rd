@@ -23,6 +23,3 @@ The estimated calibration intercept
 \description{
 Infer calibration intercept from mean calibration given a fixed calibration slope and a given distribution for calibrated risks
 }
-\examples{
-infer_cal_int_from_mean("beta", c(1,1), 1 ,1.1, 0.25)
-}

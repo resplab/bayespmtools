@@ -21,14 +21,3 @@ Estimated sample size needed to achieve the target
 \description{
 Find sample size N, so that the specified quantile is equal to given target
 }
-\examples{
-ciw_matrix <- matrix(c(
-0.09, 0.08, 0.07, 0.06,
-0.085, 0.075, 0.065, 0.055,
-0.095, 0.085, 0.075, 0.065
-), nrow = 3, byrow = TRUE)
-
-N_vals <- c(100, 200, 300, 400)
-
-find_n_quantile(target = 0.065, N = N_vals, q = 0.5, ciws = ciw_matrix)
-}

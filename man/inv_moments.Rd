@@ -20,6 +20,3 @@ shape1 (alpha) and shape2 (beta) for beta
 \description{
 Calculates the model parameters of interest given the first two moments.
 }
-\examples{
-inv_moments("norm", c(0,1))
-}
