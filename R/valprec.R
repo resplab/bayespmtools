@@ -314,12 +314,12 @@ bpm_valprec <- function(
       }
     }
     if (b_voi) {
-      out$voi$evpi <- evpi #res$EVPI
-      out$voi$evsi <- evsi / n_rep #res$EVSI
+      out$NB$evpi <- evpi #res$EVPI
+      out$NB$evsi <- evsi / n_rep #res$EVSI
     }
     if (b_assurance) {
-      out$assurance$assurance0 <- assurance0
-      out$assurance$assurance <- assurance / n_rep #res$EVSIp
+      out$NB$assurance0 <- assurance0
+      out$NB$assurance <- assurance / n_rep #res$EVSIp
     }
   }
 

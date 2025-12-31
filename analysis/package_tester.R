@@ -9,8 +9,8 @@ evidence3 <- list(prev=list(type="beta", m=0.47, cih=0.65),
                   cal_mean=list(type="norm", m=0, sd=0.1)
                   )
 
-targets_ss <- list(eciw.cstat=0.1, eciw.cal_oe=0.1, qciw.cal_oe=c(0.15, 0.9), assurance.nb=0.9)
-targets_pow <- list(eciw.cstat=T, eciw.cal_oe=T, qciw.cal_oe=c(0.9), assurance.nb=T, voi.nb=T)
+targets_ss <- list(eciw.cstat=0.1, eciw.cal_oe=0.1, qciw.cal_oe=c(0.15, 0.9), voi.nb=0.9, assurance.nb=0.9)
+targets_prec <- list(eciw.cstat=T, eciw.cal_oe=T, qciw.cal_oe=c(0.9), assurance.nb=T, voi.nb=T)
 
 
 N<- c(50, 100, 200, 500, 1000, 2000)
@@ -22,10 +22,10 @@ dist_type="logitnorm"
 impute_cor <- T
 method="sample"
 
-library(bayescpm)
+library(bayespmtools)
 set.seed(1)
 ress <- bpm_valsamp(evidence=evidence_isaric, dist_type=dist_type, method=method, targets=targets_ss, n_sim=n_sim, impute_cor=impute_cor, threshold=threshold)
 
-resp <- bpm_valpow(N, evidence=evidence_isaric, dist_type=dist_type, method=method, targets=targets_pow, n_sim=n_sim, impute_cor=impute_cor, threshold=threshold)
+resp <- bpm_valprec(ress$N, evidence=evidence_isaric, dist_type=dist_type, method=method, targets=targets_pow, n_sim=n_sim, impute_cor=impute_cor, threshold=threshold)
 
 

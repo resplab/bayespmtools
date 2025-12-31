@@ -1,43 +1,48 @@
 #' @export
 summary.bpm_evidence <- function(object, ..., digits = getOption("digits")) {
   stopifnot(inherits(object, "bpm_evidence"))
-
-  # ---- extract core elements ----
-  # (adjust names to your actual list structure)
-  n_models <- length(object$models)
-  weights <- object$weights
-
-  res <- list(
-    n_models = n_models,
-    weights = weights,
-    call = object$call
+  
+  tab <- data.frame(
+    component  = names(object),
+    type       = character(length(object)),
+    parameter1 = double(length(object)),
+    parameter2 = double(length(object)),
+    mean       = double(length(object)),
+    variance   = double(length(object)),
+    stringsAsFactors = FALSE
   )
-
-  class(res) <- "summary.bpm_evidence"
-  res
+  
+  for (i in seq_along(object)) {
+    tab$type[i]       <- object[[i]]$type
+    tab$parameter1[i] <- object[[i]]$parms[1]
+    tab$parameter2[i] <- object[[i]]$parms[2]
+    tab$mean[i]       <- object[[i]]$moments[1]
+    tab$variance[i]   <- object[[i]]$moments[2]
+  }
+  
+  class(tab) <- c("summary.bpm_evidence", "data.frame")
+  tab
 }
+
+
 
 
 #' @export
 print.summary.bpm_evidence <- function(x, ..., digits = getOption("digits")) {
   cat("Summary of BPM evidence\n")
   cat("-----------------------\n\n")
-
-  if (!is.null(x$call)) {
-    cat("Call:\n")
-    print(x$call)
-    cat("\n")
-  }
-
-  cat("Number of models:", x$n_models, "\n\n")
-
-  if (!is.null(x$weights)) {
-    cat("Model weights:\n")
-    print(round(x$weights, digits))
-  }
-
+  
+  tab <- x
+  tab$parameter1 <- round(tab$parameter1, digits)
+  tab$parameter2 <- round(tab$parameter2, digits)
+  tab$mean       <- round(tab$mean, digits)
+  tab$variance   <- round(tab$variance, digits)
+    
+  print.data.frame(tab, row.names = FALSE)
+    
   invisible(x)
 }
+
 
 
 #'Transforms Evidence Into Standardized Format

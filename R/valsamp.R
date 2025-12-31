@@ -206,14 +206,6 @@ bpm_valsamp <- function(evidence,
     #require(evsiexval)
     #res <- evsiexval::EVSI_gf(sample[,c('prev','se','sp')], future_sample_sizes=N,  ignore_prior=TRUE, z=threshold)
     
-    if(b_voi)
-    {
-      target <- targets$voi.nb; 
-    }else
-    {
-      target <- targets$assurance.nb; 
-    }
-    
     tnb1 <- sample$prev*sample$se - (1-sample$prev)*(1-sample$sp)*threshold/(1-threshold)
     tnb2 <- sample$prev - (1-sample$prev)*threshold/(1-threshold)
     tnbs <- cbind(0,tnb1,tnb2)
@@ -222,7 +214,7 @@ bpm_valsamp <- function(evidence,
     assurance0 <- mean(apply(tnbs, 1, which.max)==which.max(colMeans(tnbs)))
     evpi <- mean(maxnbs)-maxenb
     
-    f <- function(x, b_assurance=FALSE) {
+    f <- function(x, voi) {
       n <- c(round(x))
       
       nd <- rbinom(rep(n,n_sim), n, sample$prev)
@@ -237,7 +229,7 @@ bpm_valsamp <- function(evidence,
       evsi <- mean(winnertnbs)-maxenb
       assurance <- mean(winnertnbs==maxnbs)
       
-      if(b_voi)
+      if(voi)
       {
         return((evsi/evpi-target)^2);
       }else
@@ -246,10 +238,18 @@ bpm_valsamp <- function(evidence,
       }
     }
     
-    # require(OOR)
-    res <- OOR::StoSOO(c(1000), f, lower=100, upper=10^5, nb_iter=1000)
-    
-    out$N <- unlist(c(out$N, assurance.nb=round(res$par)))
+    if(b_voi)
+    {
+      target <- targets$voi.nb;
+      res <- OOR::StoSOO(c(1000), f, lower=100, upper=10^5, nb_iter=1000, voi=TRUE)
+      out$N <- unlist(c(out$N, voi.nb=round(res$par)))
+    }
+    if(b_assurance)
+    {
+      target <- targets$assurance.nb;
+      res <- OOR::StoSOO(c(1000), f, lower=100, upper=10^5, nb_iter=1000, voi=FALSE)
+      out$N <- unlist(c(out$N, assurance.nb=round(res$par)))
+    }
   }
     
   out$sample <- sample

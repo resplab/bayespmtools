@@ -1,3 +1,19 @@
+inlineInput <- function(label, input) {
+  div(
+    style = "
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      align-items: center;
+      column-gap: 12px;
+      margin-bottom: 8px;
+    ",
+    tags$span(label),
+    input
+  )
+}
+
+
+
 choices <- list(evidence_prev_input_type=c(  pe_cih="Point estimate and upper 95%CI bound",
                                              pe_ss="Point estimate and sample size",
                                              m_sd="Mean and SD",
@@ -111,34 +127,33 @@ collect_evidence <- function(input)
 collect_targets <- function(input)
 {
   targets <- list()
-  items <- c("cstat", "cal_slp", "cal_oe", "cal_mean", "cal_int")
+  metrics <- c("cstat", "cal_slp", "cal_oe", "cal_mean", "cal_int")
   
-  if(input$b_feciw)
+  if(input$b_eciw)
   {
-    type <- input$feciw_type
-    for(item in items)
+    for(metric in metrics)
     {
-      if(input[[paste0("b_target_",item)]])
+      if(input[[paste0("b_eciw_",metric)]])
       {
-        targets[paste0(type,".",item)]=ifelse(input$purpose=='pow', TRUE, input[[paste0("eciw_",item)]])
+        targets[paste0("eciw.",metric)]=ifelse(input$purpose=='prec', TRUE, input[[paste0("eciw_",metric)]])
       }
     }
   }
   
   if(input$b_qciw)
   {
-    for(item in items)
+    for(metric in metrics)
     {
-      if(input[[paste0("b_target_",item)]])
+      if(input[[paste0("b_qciw_",metric)]])
       {
-        if(input$purpose=='pow')
+        if(input$purpose=='prec')
         {
           tmp <- input$qciw
         }else
         {
-          tmp <- c(input[[paste0("qciw_",item)]], input$qciw)
+          tmp <- c(input[[paste0("qciw_",metric)]], input$qciw)
         }
-        targets[[paste0("qciw.",item)]] <- tmp 
+        targets[[paste0("qciw.",metric)]] <- tmp 
       }
     }
   }
@@ -146,11 +161,11 @@ collect_targets <- function(input)
   
   if(input$b_voi_nb)
   {
-    targets$voi.nb=ifelse(input$purpose=='pow', TRUE, TRUE)
+    targets$voi.nb=ifelse(input$purpose=='prec', TRUE, TRUE)
   }
   if(input$b_assurance_nb)
   {
-    targets$assurance.nb=ifelse(input$purpose=='pow', TRUE, input$assurance_nb)
+    targets$assurance.nb=ifelse(input$purpose=='prec', TRUE, input$assurance_nb)
   }
   
   targets
@@ -168,7 +183,7 @@ gen_args <- function(input)
 {
   out <- list()
   
-  if(input$purpose=="pow") out$N <- eval(parse(text = paste("c(",input$N,")")))
+  if(input$purpose=="prec") out$N <- eval(parse(text = paste("c(",input$N,")")))
   
   out$evidence <- collect_evidence(input)
   
