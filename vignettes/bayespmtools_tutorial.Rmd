@@ -21,48 +21,61 @@ library(bayespmtools)
 
 ## Introduction
 
-Current sample size calculations for external validation of risk prediction models require researchers to have fixed values of assumed model performance metrics alongside target precision levels. Using a Bayesian framework enables researchers to have more flexibility for sample size rules, including being able to include uncertainty in model performance in sample size calculations, and specify targets based on expected precision, assurance probabilities, and Value of Information (VoI).
+Current sample size calculations for external validation of risk prediction models require researchers to specify fixed values of assumed model performance metrics alongside target precision levels. Using a Bayesian framework enables researchers to 1) be able to include uncertainty in model performance in sample size calculations, 2) specify targets based on expected precision, assurance probabilities, and Value of Information (VoI).
 
 The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in <https://arxiv.org/pdf/2504.15923>.
 
-This tutorial overviews two core functions in this R package: ***bpm_valsamp***, and ***bpm_valprec***. This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <https://github.com/resplab/bayespmtools> for instructions on more instructions on how to install and use this package.
+The two core functions of this package are ***bpm_valsamp***, and ***bpm_valprec***. In general, ***bpm_valsamp*** is used for sample size calculations given a set of sample size rules, while ***bpm_valprec*** is used to quantify the precision (and VoI values) for a given set of sample sizes. 
+
+In this tutorial, we use the ***bpm_valsamp*** function to determine sample size for an exemplary scenario, while using ***bpm_valprec*** to check the validity of the results and perform VoI analysis across sample size components.
+
+This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <https://github.com/resplab/bayespmtools> for more instructions on how to install and use this package.
+
+
+```{r set-seed}
+# Settings the random number seed for reproducibility
+set.seed(1)
+```
 
 ### The ISARIC Model
 
 As a case study, we present sample size calculations for the ISARIC 4C model. The ISARIC 4C Model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 @gupta2021isaric. The investigators used electronic hospital records from all 9 health regions of the UK to develop and validate this model. London was left out for external validation while the other 8 regions were used in creating the model.
 
-We assume we plan to validate this study in the London region. Based on the exchangeability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK.
+We assume we plan to validate this study in the London region. Based on the exchangeability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK. This predictive distribution for various model performance metrics are provided in the full text of the paper.
 
-### Computing Evidence and Specifying Targets
+### Specifying Evidence
 
 The values in the evidence are extracted from meta-analysis of the original report for the ISARIC 4C model, which produced these values based on predictive distribution of the internal-external validation results.
 
 The Bayesian sample size calculation approach requires specifying prior distribution on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, observed-to-expected (O/E) ratio, or mean calibration (difference between average observed and predicted risks - which is the one we use for this example). These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere @gupta2021isaric. Here, we directly use the predictive distributions from this meta-analysis.
 
-```{r set-seed}
-# Settings the random number seed for reproducibility
-set.seed(123)
-```
+Evidence can be specified in different ways. Perhaps the most straightforward is a list of R formulas, as below. Note the flexibility in specifying the parameters for distributions. For prevalence, we are parameterizing the Beta distribution by its mean and SD (which is internally mapped to the parameters of the Beta distibution); for c-statistic, we are parameterizing the distribution by its mean and the upper bound of its 95% confidence intervals (i.e., 97.5th percentile). If parameters are not named, they are taken as the natural parameters for the distribution - this, for the two calibration arguments, these are the mean and SD of the corresponding Normal distribution.
 
-Specified evidence should be a list of formulas, with exact naming of parameters per below. Currently recognized distributions are norm (Normal), logitnorm(Logit-normal), probitnorm (Probit-normal), and beta (Beta). Note the flexibility in specifying the distributions. If paramters are not named, they are taken as the natural parameters for the distribution. Ohterwise they are internally mapped to the parameters of the distributin. For example, the mean and SD specified for prevalence are internally converted to the two parameters of the Beta distribution.
 
 ```{r load-evidence}
 evidence <- list(
-    prev~beta(mean=0.428, sd=0.03), 
-    cstat~logitnorm (mean=0.761, sd=0.006), 
+    prev~beta(mean=0.428, sd=0.0295), 
+    cstat~beta(mean=0.761, cih=0.7734), 
     cal_mean~norm(-0.009, 0.125), 
     cal_slp~norm(0.995, 0.024)
   )
-
 ```
 
-### Targets
+Currently recognized distributions are norm (Normal), logitnorm (Logit-normal), probitnorm (Probit-normal), and beta (Beta). Note the flexibility in specifying the distributions. 
 
-Targets are specified based the same as the method proposed in @riley2021minsample, for comparability. The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3.
 
-The expected confidence intervals widths (eciw) only require a target confidence interval width. Meanwhile, the quantile confidence interval widths (qciw) require the target confidence interval width to be specified along with the desired assurance (quantile). In our example we use a quantile of 0.9 for 90% assurance.
+### Sample size targets and rules
 
-The assurance.nb parameter is the Optimality Assurance defined as the probability that we will correctly identify the strategy that has the highest true net benefit based on the validation data. In this example it is set at 0.9.
+Targets of sample size / precision calculations are generally divided into two groups: statistical metrics of model performance, and the net benefit (NB) as a measure of clinical utility. 
+
+For statistical metrics, the user can choose among c-statistic (cstat), mean calibration error (cal_mean), O/E ratio (cal_oe), calibration intercept (cal_int), and calibration slope (cal_slp). For our example, we use the same targets as chosed in @riley2021minsample: The target 95% confidence interval widths are as follows: C-Statistic: 0.10, O/E ratio: 0.22, Calibration Slope: 0.3.
+
+For these metrics, two types of rules are definable: those that target the expected CI width (ECIW), and those that target a given quantile of these metrics (QCIW). The former can be seen as the Bayesian equivalent of the frequentist sample size calculation in @riley2021minsample. The latter is unique to our Bayesian framework and can be used to devise 'assurance-type' rules: determining the sample size that provides a given level of assurance that the CI width will be below a desired target. 
+
+For our case study, we calculate sample sizes corresponding to the expected value of these metrics, as well as sample sizes that will provide 90% assurance that the future CI width will be at most as wide as the specified targets above. The expected confidence intervals widths (eciw) only require a target confidence interval width. Meanwhile, the quantile confidence interval widths (qciw) require the target confidence interval width to be specified along with the desired assurance (quantile). In our example we use a quantile of 0.9 for 90% assurance.
+
+For net benefit (NB) as a decision-theoretic metric, this framework suggests two sample size rules. The first is the Optimality Assurance. An Optimality Assurance of 90% indicates that we would like to be at least 90% confident that the strategy that we declare as the most optimal (highest NB) in the sample is truly the most optimal strategy. The assurance.nb parameter is therefore set at 0.9. The second sample size rules is the voi.nb, and is defined as the ratio of the Expected Value of Sample Information (EVSI) at a given sample size to Expected Value of Perfect Information (EVPI). A ratio of 0.8 means that the planned study is expected to reduce NB loss due to uncertainty by 80%. In our case study, we do not impose a VoI criteria. Instead, we will later calculate VoI metrics at sample size components for other targets. This will help us inspect the efficiency of sample sizes in terms of expected gain in NB.
+
 
 ```{r targets-samp}
 targets_samp <- list(eciw.cstat=0.1,
@@ -71,7 +84,7 @@ targets_samp <- list(eciw.cstat=0.1,
                 qciw.cstat=c(0.1, 0.9),
                 qciw.cal_oe=c(0.22, 0.9),
                 qciw.cal_slp=c(0.30,0.9),
-                assurance.nb=0.9)
+                oa.nb=0.9)
 ```
 
 ### Sample size calculator (*bpm_valsamp*())
@@ -79,37 +92,40 @@ targets_samp <- list(eciw.cstat=0.1,
 This is the main function call that computes the sample size requirements based on our evidence and targets. It returns the required sample size for external validation for each parameter requested in the targets.
 
 ```{r eval=FALSE}
-res <- bpm_valsamp(evidence=evidence, #Evidence as a list
-                   dist_type="logitnorm", #Distribution type for calibrated risks
-                   method="sample", #Sample based or tw-level ("2s") method
+samp <- bpm_valsamp(evidence=evidence, #Evidence as a list
                    targets=targets_samp, #Targets (as specified above)
                    n_sim=10000, #Number of Monte Carlo simulations
-                   threshold=0.2) #Risk threshold for NB VoI calculations
+                   threshold=0.2) #Risk threshold for NB calculations
 
 ```
+
+```{r include=FALSE}
+samp <- readRDS("precomputed/samp_result.rds")
+```
+
+Let's take a look at the sample size components.
 
 ```{r print-samp-results}
 #Print results
-res <- readRDS("precomputed/samp_result.rds")
-print(res$N)
+print(samp$results)
 ```
 
-As can be seen above, different components require different sample size estimates. The largest sample size is 1171, dictated by on the assurance desired for the calibration slope criterion.
+As can be seen above, different components require different sample size estimates. The largest sample size is `r max(samp$N)`, dictated by on the assurance desired for the calibration slope criterion. The smallest component, at `r min(samp$N)` pertains to Optimality Assurance.
 
 ### Computing precision / VoI for a given sample size (*bpm_valprec*())
 
-This function returns the parameter values based on the given sample sizes and targets. It works as an inverse to the ***bpm_valsamp*** function.
+This function returns the parameter values based on the given sample sizes and targets. The utility of this function is in fixed designs where we are interested in evaluating the sufficiency of the available sample size for various targets.
 
 For this example, we will be using the outputs from ***bpm_valsamp*** to verify that the 95% CI widths and VoI values for sample size components derived from ***bpm_valprec*** are indeed close to the desired ones. As such, we use the same evidence element defined earlier, and create a new target element *target_prec*, that contains the same parameters *target_samp* but defined as T for present eciw targets, or 0.9 for present qciw targets.
 
-The *N_prec* variable includes the output sample sizes from ***bpm_valsamp***.
 
 ```{r}
-N_prec = c(363, 424, 1071, 401, 521, 1171, 306)
+N_prec <- samp$results  #Sample size components from the main function call.
 
-targets_prec = list(eciw.cstat = T, eciw.cal_oe = T, eciw.cal_slp = T, qciw.cstat = 0.9, qciw.cal_oe = 0.9, qciw.cal_slp = 0.9, assurance.nb=T)
-
+targets_prec = list(eciw.cstat = T, eciw.cal_oe = T, eciw.cal_slp = T, qciw.cstat = 0.9, qciw.cal_oe = 0.9, qciw.cal_slp = 0.9, oa.nb=T)
 ```
+
+Note that for ECIW (as well as Optimality Assurance), we just express our desire to have them calculated. For QCIW values, the quantile value needs to be supplied.
 
 ```{r eval=FALSE}
 prec <- bpm_valprec(
@@ -120,43 +136,119 @@ prec <- bpm_valprec(
   targets = targets_prec, #Targets specified above
   n_sim = 10000, #Number of Monte Carlo simulations
   threshold=0.2) #Risk threshold for NB VoI calculations
-
 ```
 
-### Validating and Understanding the Outputs
+```{r include=FALSE}
+prec <- readRDS("precomputed/prec_result.rds")
+```
 
-Given our output, below we can validate the results of ***bpm_valsamp*** by comparing our output of ***bpm_valprec***to using our *targets_samp* and *N_prec* variable.
-
-Our target confidence interval width passed into ***bpm_valsamp*** for *eciw.cstat* was 0.1. And the resulting sample size we calculated to reach this target was 351.
-
-Notice that 351 is the first element in our *N_prec* variable that is being passed into ***bpm_valprec***. Now we can look at the first element in our output for ***bpm_valprec*** which corresponds to *eciw.cstat* and see that the calculated precision is indeed 0.1 which is exactly the same as the targets specified.
-
-Additionally, we can continue verifying the remaining parameters. Notice that the second element in the ***bpm_valprec*** output for *eciw.cal_oe* is 0.22 which matches target specified earlier for *eciw.cal_oe* in *targets_samp.*
-
-assurance0 is the assurance before any validation studies given our current uncertainties. It is a baseline assurance based on our evidence and not dependent on any targets.
 
 ```{r include = FALSE}
 ### This code will not show in the vignette
 ### Used to round the results so that the tutorial is easier to follow
-prec <- readRDS("precomputed/prec_result.rds")
 
-prec$eciw$cstat <- round(prec$eciw$cstat, 3)
-prec$eciw$cal_oe <- round(prec$eciw$cal_oe, 3)
-prec$eciw$cal_slp <- round(prec$eciw$cal_slp, 3)
-
-prec$qciw$cstat <- round(prec$qciw$cstat, 3)
-prec$qciw$cal_oe <- round(prec$qciw$cal_oe, 3)
-prec$qciw$cal_slp <- round(prec$qciw$cal_slp, 3)
-
-prec$assurance$assurance0 <- round(prec$assurance$assurance0, 3)
-prec$assurance$assurance <- round(prec$assurance$assurance , 3)
+prec$results <- round(prec$results, 4)
 ```
+
+The main output of **bpm_valprec()** is a matrix names 'results' that contains all requested precision / VoI metrics at all requested sample sizes. The rows of this matrix are named as the requested sample size (as character), while the column
 
 ```{r compare_results}
 
-results <- data.frame(sample_size = N_prec, eciw = prec$eciw, qciw = prec$qciw, prec$assurance)
+res <- prec$results[cbind(samp$results, names(samp$results))]
+names(res) <- names(samp$results)
 
-print(results)
+print(res)
 ```
+These values should be close to the requested precision / assurance / VoI targets. If this is not the case, one should potentially run the analysis with larger values of n_sim, as well as checking if evidence is specified reasonably.
+
+
+## Drawing the EVSI curve
+Finally, we use VoI analysis to determine the relative efficiency of sample size components in terms of their expected NB gain.
+
+Here, we call the **bpm_valprec()** function with only one target (voi.nb=TRUE). Also, note that for 'evidence' input, we are passing the sample object from the main results. This bypasses the sample creation component, which is already done once. Because of this, some other inputs are also not needed anymore. For example, there is no need to specify n_sim, as this is already determined by the number of rows of the sample data frame.
+
+```{r}
+voi <- bpm_valprec(
+  N = N_prec, #Sample sizes at each calculations are to be conducted.
+  evidence = samp$sample, #Evidence as a list
+  targets = list(voi.nb=T), #Only requesting EVSI and EVPI
+  threshold=0.2) #Risk threshold for NB VoI calculations
+```
+
+Below we use ggplot to draw the EVSI curve for each sample size component. Note that the main Y axis shows the raw EVSI(N) values, which asymptote to the EVPI value. The secondary (right) Y axis shows the EVSI(N)/EVPI ratio. This ratio asymptotes to 1 as the sample size increases.
+
+```{r fig.fullwidth, fig.width = 8, fig.height = 5, out.width = "100%"}
+library(ggplot2)
+
+graph_shapes <- c("oa.nb"=18,
+                  "eciw.cstat"=15,
+                  "qciw.cstat"=15,
+                  "eciw.cal_oe"=16,
+                  "qciw.cal_oe"=16,
+                  "eciw.cal_slp"=17,
+                  "qciw.cal_slp"=17)
+
+graph_names <- c("oa.nb"="Optimality assurance",
+                  "eciw.cstat"="c-statistic (expected value)",
+                  "qciw.cstat"="c-statistic (assurance)",
+                  "eciw.cal_oe"="O/E ratio (expected value)",
+                  "qciw.cal_oe"="O/E ratio (assurance)",
+                  "eciw.cal_slp"="Calibration slope (expected value)",
+                  "qciw.cal_slp"="Calibration slope (assurance)")
+
+graph_colors <- c("oa.nb"="black",
+                  "eciw.cstat"="#1f77b4", 
+                  "qciw.cstat"="orange",
+                  "eciw.cal_oe"="#1f77b4",
+                  "qciw.cal_oe"="orange",
+                  "eciw.cal_slp"="#1f77b4",
+                  "qciw.cal_slp"="orange")
+
+df <- data.frame(N=voi$N, EVPI=voi$results[,'voi.evpi'], EVSI=voi$results[,'voi.evsi'])
+o <- order(df$N)
+df <- df[o, ]
+
+df$shapes <- graph_shapes[rownames(df)]
+df$graph_names <- graph_names[rownames(df)]
+df$colors <- graph_colors[rownames(df)]
+df$names <- rownames(df)
+
+df$names <- factor(df$names, levels = unique(df$names))
+
+
+df$EVSI_EVPI_ratio <- df$EVSI / df$EVPI
+scale_factor <- max(df$EVSI) / max(df$EVSI_EVPI_ratio)
+df$EVSI_EVPI_ratio_scaled <- df$EVSI_EVPI_ratio * scale_factor
+
+
+# EVSI plot
+plt <- ggplot(df, aes(x=N)) +
+  geom_line(aes(y=EVSI), color="black") +  # Add the EVSI/EVPI ratio line
+  geom_point(aes(y=EVSI, shape=names, color=names), size=2) +  
+  labs(x = "Sample size (N)", y = "Expected gain in NB (EVSI)", title = "") +
+  scale_shape_manual(
+    name = "Sample size targets and rules",  
+    values = df$shapes,  # Unique shapes
+    labels = df$graph_names  # Use levels of N for labels
+  ) +
+  scale_color_manual(
+    name = "Sample size targets and rules",  
+    values = df$colors,  # Unique shapes
+    labels = df$graph_names  # Use levels of N for labels
+  ) +
+  # Primary Y-axis limits
+  scale_y_continuous(
+    limits = c(0, max(df$EVSI, df$EVPI)),
+    sec.axis = sec_axis(~ . / scale_factor, name = "EVSI/EVPI Ratio")  # Secondary Y-axis
+  ) +
+  # Horizontal lines
+  geom_hline(yintercept = df$EVPI, color = "gray") +
+  theme_minimal()
+print(plt)
+
+```
+
+The EVSI graph might be used to reason, for example, that whether one can relax sample size rules around calibration slope (which more than double the requires sample size) without losing much clinical utility.
+
 
 ### References

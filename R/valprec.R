@@ -4,12 +4,13 @@
 #'
 #'@param N Numeric vector of sample sizes to evaluate
 #'@param evidence A named list with prior evidence parameters
-#'@param targets list of metrics to compute:
-#'  fciw.cstat, fciw.cal_slp: Boolean value for frequentist CI width for cstat and calibration slope. Default is True
-#'  eciw.cstat, eciw.cal_oe: Boolean value for expected CI width for cstat, and observed-to-expected ratio. Default it True
-#'  qciw.cal_oe: Vector of quantile of CI width for observed-to-expected ratio. Default is 0.9
-#'  assurance.nb: Boolean value for Net benefit assurance
-#'  voi.nb: Boolean value for Value of Information for net benefit
+#'@param targets A list of targets to compute:
+#'  For expected precision width, the format is eciw.metric=TRUE/FALSE, e.g., eciw.cstat=TRUE will calculate the expected CI width around c-statistic at requested sample sizes.
+#'  For assurance, the format is qciw.XXX=q, where q is the desired quantile. For example, qciw.cal_oe=0.9 returns the 90th percentile of CI width around O/E ratio.
+#'  Currently implemented metrics are: cstat (c-statistics), cal_oe (observed/expected event ratio: E(Y)/E(pi)), cal_mean (mean calibration error: E(Y)-E(pi)), cal_int (calibration intercept), and cal_slp (calibration slope)
+#'  For net benefit, targets are:
+#'  oa.nb: if TRUE, will calculate the optimality assurance at requested sample sizes.
+#'  voi.nb: if TRUE, will calculate the expected value of sample information (EVSI) at requested sample sizes.
 #'@param n_sim number of Monte Carlo simulations. Default is 1000
 #'@param method method to calculate pre-posterior distribution of 95% confidence intervals. One of "sample", "2s"; default is "sample"
 #'@param threshold Threshold used for decision rules and NB calculations. Required if `voi.nb` or `assurance.nb` are requested.
@@ -17,13 +18,11 @@
 #'@param impute_cor Boolean value to induce correlation. Default is True
 #'@param ex_args List of extra arguments.
 #'@return A list containing:
-#'   fciw: Frequentist confidence interval widths (if requested)
-#'   eciw: Expected posterior CI widths (if requested)
-#'   qciw: Quantile posterior CI widths (if requested)
-#'   voi: Expected value of information metrics (EVPI, EVSI)
-#'   assurance: Net benefit assurance statistics
+#'   results: a matrix including the requested precision / voi metrics for each sample requested sample size.
 #'   sample: The full Monte Carlo sample used in computations
 #'   evidence: Processed evidence object
+#'   targets: same as the corresponding input parameter
+#'   ciws: a list containing simulated ciws for each requested metric
 #'@examples
 #' evidence <- list(
 #'   prev = list(type = "beta", mean = 0.38, sd = 0.01),  # tight prior for stability
@@ -32,28 +31,22 @@
 #'   cal_slp = list(mean = 0.8, sd = 0.3)
 #' )
 #'
-#' bpm_valprec(
+#' res <- bpm_valprec(
 #'   N = c(1000, 1500),
 #'   evidence = evidence,
-#'   targets = list(fciw.cstat = TRUE),
-#'   impute_cor = FALSE,    # prevent ROC crashes
-#'   n_sim = 100            # faster and safer on CRAN
+#'   targets = list(eciw.cstat = TRUE, qciw.cal_slp=0.9, voi.nb=0.8),
+#'   threshold=0.2,
+#'   n_sim = 100            # faster and safer on CRAN. Please increase this value for real-world use.
 #' )
+#'
+#' print(res$results)
 #'
 #' @export
 bpm_valprec <- function(
   N,
   evidence,
-  targets = list(
-    fciw.cstat = T,
-    fciw.cal_slp = TRUE,
-    eciw.cstat = TRUE,
-    eciw.cal_oe = TRUE,
-    qciw.cal_oe = c(0.9),
-    assurance.nb = TRUE,
-    voi.nb = TRUE
-  ),
-  n_sim = 1000,
+  targets,
+  n_sim = NULL,
   method = "sample",
   threshold = NULL,
   dist_type = "logitnorm",
@@ -145,14 +138,17 @@ bpm_valprec <- function(
 
     #Step 3: induce correlation (if asked)
     if (impute_cor) {
-      f_progress("Imputing correlation...")
       eff_n <- round(
         evidence$prev$moments[[1]] *
           (1 - evidence$prev$moments[[1]]) /
           evidence$prev$moments[[2]],
         0
       )
-      f_progress(paste("Based on effective sample size:", eff_n))
+      f_progress(paste(
+        "Imputing correlation, based on effective sample size:",
+        eff_n,
+        "..."
+      ))
       base_cor <- infer_correlation(
         base$dist_type,
         c(base$dist_parm1, base$dist_parm2),
@@ -244,7 +240,7 @@ bpm_valprec <- function(
           ciws[[target_metrics[bciws[i]]]],
           2,
           quantile,
-          target_values[[bciws[i]]][2]
+          target_values[[bciws[i]]][1]
         )
       }
     }
@@ -257,7 +253,7 @@ bpm_valprec <- function(
     out$ciws <- ciws
   }
 
-  b_assurance <- sum((target_rules == "assurance" & !isFALSE(target_values)))
+  b_assurance <- sum((target_rules == "oa" & !isFALSE(target_values)))
   b_voi <- sum((target_rules == "voi" & !isFALSE(target_values)))
   if (b_assurance | b_voi) {
     if (is.null(threshold)) {
@@ -297,6 +293,11 @@ bpm_valprec <- function(
     evpi <- mean(maxnbs) - maxenb
     assurance0 <- mean(apply(tnbs, 1, which.max) == which.max(colMeans(tnbs)))
     n_rep <- 1
+
+    if (is.null(n_sim)) {
+      n_sim <- nrow(sample)
+    }
+
     for (I in 1:n_rep) {
       for (i in 1:length(N)) {
         n <- N[i]
@@ -314,14 +315,60 @@ bpm_valprec <- function(
       }
     }
     if (b_voi) {
-      out$NB$evpi <- evpi #res$EVPI
-      out$NB$evsi <- evsi / n_rep #res$EVSI
+      out$voi$evpi <- evpi #res$EVPI
+      out$voi$evsi <- evsi / n_rep #res$EVSI
     }
     if (b_assurance) {
-      out$NB$assurance0 <- assurance0
-      out$NB$assurance <- assurance / n_rep #res$EVSIp
+      out$oa$nb0 <- assurance0
+      out$oa$nb <- assurance / n_rep #res$EVSIp
     }
   }
+
+  df <- NULL
+  if (!is.null(out$eciw)) {
+    tmp <- as.data.frame(out$eciw)
+    colnames(tmp) <- paste0("eciw.", colnames(tmp))
+    out$eciw <- NULL
+    if (is.null(df)) {
+      df <- tmp
+    } else {
+      df <- cbind(df, tmp)
+    }
+  }
+  if (!is.null(out$qciw)) {
+    tmp <- as.data.frame(out$qciw)
+    colnames(tmp) <- paste0("qciw.", colnames(tmp))
+    out$qciw <- NULL
+    if (is.null(df)) {
+      df <- tmp
+    } else {
+      df <- cbind(df, tmp)
+    }
+  }
+  if (!is.null(out$voi)) {
+    tmp <- as.data.frame(out$voi)
+    colnames(tmp) <- paste0("voi.", colnames(tmp))
+    tmp$voi.nb <- tmp$voi.evsi / tmp$voi.evpi
+    out$voi <- NULL
+    if (is.null(df)) {
+      df <- tmp
+    } else {
+      df <- cbind(df, tmp)
+    }
+  }
+  if (!is.null(out$oa)) {
+    tmp <- as.data.frame(out$oa)
+    colnames(tmp) <- paste0("oa.", colnames(tmp))
+    out$oa <- NULL
+    if (is.null(df)) {
+      df <- tmp
+    } else {
+      df <- cbind(df, tmp)
+    }
+  }
+
+  rownames(df) <- N
+  out$results <- as.matrix(df)
 
   out$sample <- sample
   out

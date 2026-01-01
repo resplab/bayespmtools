@@ -7,9 +7,8 @@
 bpm_valprec(
   N,
   evidence,
-  targets = list(fciw.cstat = T, fciw.cal_slp = TRUE, eciw.cstat = TRUE, eciw.cal_oe =
-    TRUE, qciw.cal_oe = c(0.9), assurance.nb = TRUE, voi.nb = TRUE),
-  n_sim = 1000,
+  targets,
+  n_sim = NULL,
   method = "sample",
   threshold = NULL,
   dist_type = "logitnorm",
@@ -22,12 +21,13 @@ bpm_valprec(
 
 \item{evidence}{A named list with prior evidence parameters}
 
-\item{targets}{list of metrics to compute:
-fciw.cstat, fciw.cal_slp: Boolean value for frequentist CI width for cstat and calibration slope. Default is True
-eciw.cstat, eciw.cal_oe: Boolean value for expected CI width for cstat, and observed-to-expected ratio. Default it True
-qciw.cal_oe: Vector of quantile of CI width for observed-to-expected ratio. Default is 0.9
-assurance.nb: Boolean value for Net benefit assurance
-voi.nb: Boolean value for Value of Information for net benefit}
+\item{targets}{A list of targets to compute:
+For expected precision width, the format is eciw.metric=TRUE/FALSE, e.g., eciw.cstat=TRUE will calculate the expected CI width around c-statistic at requested sample sizes.
+For assurance, the format is qciw.XXX=q, where q is the desired quantile. For example, qciw.cal_oe=0.9 returns the 90th percentile of CI width around O/E ratio.
+Currently implemented metrics are: cstat (c-statistics), cal_oe (observed/expected event ratio: E(Y)/E(pi)), cal_mean (mean calibration error: E(Y)-E(pi)), cal_int (calibration intercept), and cal_slp (calibration slope)
+For net benefit, targets are:
+oa.nb: if TRUE, will calculate the optimality assurance at requested sample sizes.
+voi.nb: if TRUE, will calculate the expected value of sample information (EVSI) at requested sample sizes.}
 
 \item{n_sim}{number of Monte Carlo simulations. Default is 1000}
 
@@ -43,13 +43,11 @@ voi.nb: Boolean value for Value of Information for net benefit}
 }
 \value{
 A list containing:
-fciw: Frequentist confidence interval widths (if requested)
-eciw: Expected posterior CI widths (if requested)
-qciw: Quantile posterior CI widths (if requested)
-voi: Expected value of information metrics (EVPI, EVSI)
-assurance: Net benefit assurance statistics
+results: a matrix including the requested precision / voi metrics for each sample requested sample size.
 sample: The full Monte Carlo sample used in computations
 evidence: Processed evidence object
+targets: same as the corresponding input parameter
+ciws: a list containing simulated ciws for each requested metric
 }
 \description{
 Bayesian Precision/VoI calculator for external validation studies of risk prediction models at a given sample size
@@ -62,12 +60,14 @@ evidence <- list(
   cal_slp = list(mean = 0.8, sd = 0.3)
 )
 
-bpm_valprec(
+res <- bpm_valprec(
   N = c(1000, 1500),
   evidence = evidence,
-  targets = list(fciw.cstat = TRUE),
-  impute_cor = FALSE,    # prevent ROC crashes
-  n_sim = 100            # faster and safer on CRAN
+  targets = list(eciw.cstat = TRUE, qciw.cal_slp=0.9, voi.nb=0.8),
+  threshold=0.2,
+  n_sim = 100            # faster and safer on CRAN. Please increase this value for real-world use.
 )
+
+print(res$results)
 
 }

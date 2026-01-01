@@ -7,7 +7,7 @@
 bpm_valsamp(
   evidence,
   targets,
-  n_sim,
+  n_sim = NULL,
   method = "sample",
   threshold = NULL,
   dist_type = "logitnorm",
@@ -16,16 +16,20 @@ bpm_valsamp(
 )
 }
 \arguments{
-\item{evidence}{A named list with prior evidence elements}
+\item{evidence}{A named list with prior evidence elements.
+Alternatively, evidence can be the pre-posterior draws ($sample) returned by previous calls to this function or bpm_valprec(), in which case the method will directly work with preposterior draws.}
 
-\item{targets}{assurance.nb: Boolean value for Net benefit assurance
-voi.nb: Boolean value for Value of Information for net benefit}
+\item{targets}{A list containing targets for sample size calculations.
+Optional elements:
+For precision-based targets, one can either focus on expected (95\%CI) CI widths ('eciw.' prefix), or assurance probabilities around CI width ('qciw.' prefix).
+For example, eciw.cstat=0.1 means sample size targeting a width of 0.1 for the 95\% CI around c-statistic, or qciw.cal_slp=c(0.22, 0.90) indicates targetting an assurance probability of 90\% for a CI width of 0.22 for calibration slope.
+For net benefit, targets are: oa.nb: Optimality assurance value (e.g., 0.9 for 90\% assurance), and voi.nb, which is the ratio of EVSI to EVPI (e.g., 0.8)}
 
 \item{n_sim}{Number of simulations}
 
 \item{method}{Method to calculate pre-posterior distribution of 95\% confidence intervals. One of "sample", "2s"; default is "sample"}
 
-\item{threshold}{Threshold used for decision rules and NB calculations. Required if \code{voi.nb} or \code{assurance.nb} are requested.}
+\item{threshold}{Threshold used for decision rules and NB calculations. Required if \code{voi.nb} or \code{oa.nb} are requested.}
 
 \item{dist_type}{Distribution for calibrated risks; default is "logitnorm"}
 
@@ -35,10 +39,11 @@ voi.nb: Boolean value for Value of Information for net benefit}
 }
 \value{
 A list containing:
-N: Estimated sample sizes needed to meet the targets.
+results: Estimated sample sizes needed to meet the targets.
 sample: Data frame of simulated samples
 evidence: Processed evidence object
 trace: Trace output from stochastic root finding method
+target: same as the corresponding input argument
 }
 \description{
 Bayesian sample size calculation for external validation studies of risk prediction models
@@ -46,22 +51,26 @@ Bayesian sample size calculation for external validation studies of risk predict
 \examples{
 \donttest{
 evidence <- list(
-  prev = list(type = "beta", mean = 0.4, sd = 0.02),        
-  cstat = list(mean = 0.75, sd = 0.03),                    
-  cal_mean = list(mean = 0, sd = 0.1),                      
-  cal_slp = list(mean = 1, sd = 0.1)                       
+  prev = list(type = "beta", mean = 0.4, sd = 0.02),
+  cstat = list(mean = 0.75, sd = 0.03),
+  cal_mean = list(mean = 0, sd = 0.1),
+  cal_slp = list(mean = 1, sd = 0.1)
 )
 
 targets <- list(
-  eciw.cstat = 0.05,     
-  assurance.nb = 0.8       
+  eciw.cstat = 0.1,
+  qciw.cstat = c(0.1, 0.9),
+  oa.nb = 0.8
 )
 
-bpm_valsamp(
+samp <- bpm_valsamp(
   evidence = evidence,
   targets = targets,
   n_sim = 1000,
   threshold = 0.2
 )
+
+print(samp$results)
+
 }
 }
