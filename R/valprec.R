@@ -5,8 +5,13 @@
 #' validation studies of risk prediction models at fixed sample sizes.
 #'
 #' @param N Numeric vector of sample sizes to evaluate.
-#' @param evidence A named list with prior evidence parameters, or a
-#'   Monte Carlo sample returned by \code{bpm_valsamp()}.
+#' @param evidence
+#' A named list containing prior evidence components for model performance
+#' parameters (e.g., prevalence, discrimination, calibration).
+#' Alternatively, `evidence` may be a data frame of pre-posterior
+#' draws (element \code{$sample}) returned by a previous call to this
+#' function or to \code{bpm_valprec()}, in which case those draws are used
+#' directly.
 #' @param targets A named list of targets to compute.
 #'   \describe{
 #'     \item{eciw.metric}{Logical; compute expected CI width.}
@@ -14,8 +19,9 @@
 #'     \item{oa.nb}{Logical; compute optimality assurance for net benefit.}
 #'     \item{voi.nb}{Logical; compute EVSI and EVSI/EVPI.}
 #'   }
-#' @param n_sim Number of Monte Carlo simulations. Default is inferred
-#'   from the supplied sample when possible.
+#' @param n_sim #' Number of Monte Carlo simulations used to generate the pre-posterior
+#' distribution. If evidence is a data frame from previous calls to relevant functions,
+#' n_sim will automatically be set to the number of rows of the data frame.
 #' @param method Method to compute CI widths. One of \code{"sample"} or
 #'   \code{"2s"}.
 #' @param threshold Decision threshold for net benefit calculations.
@@ -37,10 +43,10 @@
 #' }
 #' @examples
 #' evidence <- list(
-#'   prev = list(type = "beta", mean = 0.38, sd = 0.01),  # tight prior for stability
-#'   cstat = list(type="beta", mean = 0.7, sd = 0.05),
-#'   cal_mean = list(mean = 0, sd = 0.3),
-#'   cal_slp = list(mean = 0.8, sd = 0.3)
+#'  prev~beta(mean=0.428, sd=0.030),
+#'  cstat~beta(mean=0.761, cih=0.773),
+#'  cal_mean~norm(-0.009, 0.125),  #mean and SD
+#'  cal_slp~norm(0.995, 0.024)     #mean and SD
 #' )
 #'
 #' res <- bpm_valprec(

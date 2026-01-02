@@ -23,7 +23,7 @@ library(bayespmtools)
 
 Current sample size calculations for external validation of risk prediction models require researchers to specify fixed values of assumed model performance metrics alongside target precision levels. Using a Bayesian framework enables researchers to 1) include uncertainty in model performance in sample size calculations, 2) specify targets based on expected precision, assurance probabilities, and Value of Information (VoI).
 
-The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in @sadatsafavi2024: <https://arxiv.org/pdf/2504.15923>.
+The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in @sadatsafavi2026: <https://doi.org/10.1002/sim.70389>.
 
 The two core functions of this package are ***bpm_valsamp***, and ***bpm_valprec***. In general, ***bpm_valsamp*** is used for sample size calculations given a set of sample size rules, while ***bpm_valprec*** is used in fixed designs: quantifying the anticipated precision for a given set of sample sizes. 
 
@@ -53,14 +53,14 @@ The Bayesian sample size calculation approach requires specifying prior distribu
 3) calibration slope (cal_slp), 
 4) one of calibration intercept (cal_int), observed-to-expected (O/E) ratio (cal_oe), or mean calibration (cal_mean, difference between average observed and predicted risks - which is the one we use for this example). 
 
-These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere in @sadatsafavi2024. Here, we directly use the predictive distributions from this meta-analysis.
+These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere in @sadatsafavi2026. Here, we directly use the predictive distributions from this meta-analysis.
 
 Evidence can be specified in different ways. Perhaps the most straightforward is a list of R formulas, as below:
 
 ```{r load-evidence}
 evidence <- list(
-    prev~beta(mean=0.428, sd=0.0295), 
-    cstat~beta(mean=0.761, cih=0.7734), 
+    prev~beta(mean=0.428, sd=0.030), 
+    cstat~beta(mean=0.761, cih=0.773), 
     cal_mean~norm(-0.009, 0.125),  #mean and SD
     cal_slp~norm(0.995, 0.024)     #mean and SD
   )
@@ -167,7 +167,7 @@ Finally, we use VoI analysis to determine the relative efficiency of sample size
 
 Here, we call the **bpm_valprec()** function with only one target (voi.nb=TRUE). Also, note that for 'evidence' input, we are passing the sample object from the main results. This bypasses the sample creation component, which is already done once. Because of this, some other inputs are also not needed anymore. For example, there is no need to specify n_sim, as this is already determined by the number of rows of the sample data frame.
 
-```{r}
+```{r, eval=FALSE}
 voi <- bpm_valprec(
   N = N_prec, #Sample sizes at each calculations are to be conducted.
   evidence = samp$sample, #Evidence as a list
@@ -175,6 +175,10 @@ voi <- bpm_valprec(
   threshold=0.2) #Risk threshold for NB VoI calculations
 ```
 
+```{r include=FALSE}
+voi <- readRDS("precomputed/voi_result.rds")
+```
+ 
 Below we use ggplot to draw the EVSI curve for each sample size component. Note that the main Y axis shows the raw EVSI(N) values, which asymptote to the EVPI value. The secondary (right) Y axis shows the EVSI(N)/EVPI ratio. This ratio asymptotes to 1 as the sample size increases.
 
 ```{r fig.fullwidth, fig.width = 8, fig.height = 5, out.width = "100%"}

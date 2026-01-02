@@ -1,86 +1,103 @@
-#' Bayesian Sample Size Calculator
+#' Bayesian Sample Size Calculator for External Validation
 #'
 #' @description
-#' Bayesian sample size calculation for external validation studies of risk prediction models.
+#' Bayesian sample size calculation for external validation studies of
+#' clinical risk prediction models. The function evaluates sample sizes
+#' required to meet precision-, assurance-, or decision-based targets
+#' using pre-posterior simulation.
 #'
 #' @param evidence
-#' A named list containing prior evidence elements.
-#' Alternatively, `evidence` can be the pre-posterior draws (`$sample`) returned by previous
-#' calls to this function or to `bpm_valprec()`, in which case the method will directly work
-#' with the pre-posterior draws.
+#' A named list containing prior evidence components for model performance
+#' parameters (e.g., prevalence, discrimination, calibration).
+#' Alternatively, `evidence` may be a data frame of pre-posterior
+#' draws (element \code{$sample}) returned by a previous call to this
+#' function or to \code{bpm_valprec()}, in which case those draws are used
+#' directly.
 #'
 #' @param targets
-#' A list containing targets for sample size calculations.
+#' A named list specifying sample size targets.
 #'
-#' Optional elements:
+#' Supported targets include:
 #' \itemize{
-#'   \item For precision-based targets, one can focus either on expected 95\% confidence
-#'   interval widths (prefix \code{eciw.}) or on assurance probabilities around CI width
-#'   (prefix \code{qciw.}).
-#'   \item For example, \code{eciw.cstat = 0.1} indicates a sample size targeting a width of
-#'   0.1 for the 95\% CI around the c-statistic, whereas
-#'   \code{qciw.cal_slp = c(0.90, 0.22)} indicates targeting a 90\% assurance that the CI width
-#'   for the calibration slope will not exceed 0.22.
-#'   \item For net benefit, targets include \code{oa.nb}, the Optimality Assurance value
-#'   (e.g., \code{oa.nb = 0.9} for 90\% assurance), and \code{voi.nb}, which is the ratio of
-#'   the Expected Value of Sample Information (EVSI) to the Expected Value of Perfect
-#'   Information (EVPI) (e.g., \code{voi.nb = 0.8}).
+#'   \item Precision-based targets using expected 95\% interval widths
+#'   (prefix \code{eciw}).
+#'   \item Assurance-based targets specifying the probability that the
+#'   95\% interval width does not exceed a given value
+#'   (prefix \code{qciw}).
+#'   \item Net benefit targets, including optimality assurance
+#'   (\code{oa.nb}) and value-of-information ratios
+#'   (\code{voi.nb = EVSI / EVPI}).
 #' }
 #'
+#' For example, \code{eciw.cstat = 0.1} targets an expected interval width
+#' of 0.1 for the c-statistic, while
+#' \code{qciw.cal_slp = c(0.90, 0.22)} targets a 90 percent assurance that the
+#' calibration slope interval width does not exceed 0.22.
+#' Finally, \code{oa.nb = 0.80} targets a sample size that would correspond to
+#' 80 percent assurance that the strategy with the highest NB in the sample will
+#' be the strategy with the highest NB in the  population.
+#'
 #' @param n_sim
-#' Number of Monte Carlo simulations.
+#' Number of Monte Carlo simulations used to generate the pre-posterior
+#' distribution. If evidence is a data frame from previous calls to relevant functions,
+#' n_sim will automatically be set to the number of rows of the data frame.
 #'
 #' @param method
-#' Method used to calculate the pre-posterior distribution of 95\% confidence intervals.
-#' One of \code{"sample"} or \code{"2s"}; default is \code{"sample"}.
+#' Method used to compute the pre-posterior distribution of 95\% intervals.
+#' One of \code{"sample"} (simulation-based) or \code{"2s"} (two-stage
+#' approximation). Default is \code{"sample"}.
 #'
 #' @param threshold
-#' Threshold used for decision rules and net benefit calculations.
-#' Required if \code{voi.nb} or \code{oa.nb} are requested.
+#' Risk threshold used for decision-analytic quantities and net benefit
+#' calculations. Required if \code{oa.nb} or \code{voi.nb} targets are
+#' specified.
 #'
 #' @param dist_type
-#' Distribution for calibrated risks; default is \code{"logitnorm"}.
+#' Distribution assumed for calibrated risks. Default is
+#' \code{"logitnorm"}.
 #'
 #' @param impute_cor
-#' Logical value indicating whether correlation should be induced.
+#' Logical indicating whether correlation between performance measures
+#' should be induced when simulating from marginal evidence distributions.
 #' Default is \code{TRUE}.
 #'
 #' @param ex_args
-#' A list of extra arguments.
+#' Optional list of additional arguments passed to internal simulation or
+#' root-finding routines (experimental feature).
 #'
 #' @return
-#' A list containing:
+#' A list with the following components:
 #' \itemize{
-#'   \item \code{results}: Estimated sample sizes needed to meet the targets.
-#'   \item \code{sample}: Data frame of simulated samples.
-#'   \item \code{evidence}: Processed evidence object.
-#'   \item \code{trace}: Trace output from the stochastic root-finding method.
-#'   \item \code{targets}: Same as the corresponding input argument.
+#'   \item \code{results}: Estimated sample sizes required to meet each target.
+#'   \item \code{sample}: Data frame of pre-posterior simulation draws.
+#'   \item \code{evidence}: Processed evidence object used in the analysis.
+#'   \item \code{trace}: Trace output from the stochastic root-finding algorithm.
+#'   \item \code{targets}: The targets argument supplied to the function.
 #' }
 #'
 #' @examples
 #' \donttest{
 #' evidence <- list(
-#'   prev = list(type = "beta", mean = 0.4, sd = 0.02),
-#'   cstat = list(mean = 0.75, sd = 0.03),
-#'   cal_mean = list(mean = 0, sd = 0.1),
-#'   cal_slp = list(mean = 1, sd = 0.1)
+#'  prev~beta(mean=0.428, sd=0.030),
+#'  cstat~beta(mean=0.761, cih=0.773),
+#'  cal_mean~norm(-0.009, 0.125),  #mean and SD
+#'  cal_slp~norm(0.995, 0.024)     #mean and SD
 #' )
 #'
 #' targets <- list(
 #'   eciw.cstat = 0.1,
 #'   qciw.cstat = c(0.9, 0.1),
-#'   oa.nb = 0.8
+#'   oa.nb      = 0.8
 #' )
 #'
 #' samp <- bpm_valsamp(
-#'   evidence = evidence,
-#'   targets = targets,
-#'   n_sim = 1000,
+#'   evidence  = evidence,
+#'   targets   = targets,
+#'   n_sim     = 1000,
 #'   threshold = 0.2
 #' )
 #'
-#' print(samp$results)
+#' samp$results
 #' }
 #'
 #' @export

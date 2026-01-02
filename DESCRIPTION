@@ -1,12 +1,12 @@
 Package: bayespmtools
-Title: Bayesian Sample Size Considerations for Risk Prediction Models
+Title: Bayesian Sample Size and Precision Considerations for Risk Prediction Models
 Version: 0.0.1
 Authors@R: 
     c(person(given="Mohsen", family="Sadatsafavi", email="mohsen.sadatsafavi@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0419-7862")), 
       person(given="Anna", family="Luo", email="aannaluo@gmail.com", role="ctb"))
 Maintainer: Mohsen Sadatsafavi <mohsen.sadatsafavi@ubc.ca>
-Description: Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2025) <doi:10.48550/arXiv.2504.15923>.
+Description: Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2025) <doi:10.1002/sim.70389>.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -4,9 +4,9 @@
 \name{bayespmtools-package}
 \alias{bayespmtools}
 \alias{bayespmtools-package}
-\title{bayespmtools: Bayesian Sample Size Considerations for Risk Prediction Models}
+\title{bayespmtools: Bayesian Sample Size and Precision Considerations for Risk Prediction Models}
 \description{
-Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2025) \doi{10.48550/arXiv.2504.15923}.
+Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2025) \doi{10.1002/sim.70389}.
 }
 \author{
 \strong{Maintainer}: Mohsen Sadatsafavi \email{mohsen.sadatsafavi@ubc.ca} (\href{https://orcid.org/0000-0002-0419-7862}{ORCID})
