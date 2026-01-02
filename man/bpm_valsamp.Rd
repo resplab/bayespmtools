@@ -16,37 +16,55 @@ bpm_valsamp(
 )
 }
 \arguments{
-\item{evidence}{A named list with prior evidence elements.
-Alternatively, evidence can be the pre-posterior draws ($sample) returned by previous calls to this function or bpm_valprec(), in which case the method will directly work with preposterior draws.}
+\item{evidence}{A named list containing prior evidence elements.
+Alternatively, \code{evidence} can be the pre-posterior draws (\verb{$sample}) returned by previous
+calls to this function or to \code{bpm_valprec()}, in which case the method will directly work
+with the pre-posterior draws.}
 
 \item{targets}{A list containing targets for sample size calculations.
+
 Optional elements:
-For precision-based targets, one can either focus on expected (95\%CI) CI widths ('eciw.' prefix), or assurance probabilities around CI width ('qciw.' prefix).
-For example, eciw.cstat=0.1 means sample size targeting a width of 0.1 for the 95\% CI around c-statistic, or qciw.cal_slp=c(0.22, 0.90) indicates targetting an assurance probability of 90\% for a CI width of 0.22 for calibration slope.
-For net benefit, targets are: oa.nb: Optimality assurance value (e.g., 0.9 for 90\% assurance), and voi.nb, which is the ratio of EVSI to EVPI (e.g., 0.8)}
+\itemize{
+\item For precision-based targets, one can focus either on expected 95\\% confidence
+interval widths (prefix \code{eciw.}) or on assurance probabilities around CI width
+(prefix \code{qciw.}).
+\item For example, \code{eciw.cstat = 0.1} indicates a sample size targeting a width of
+0.1 for the 95\\% CI around the c-statistic, whereas
+\code{qciw.cal_slp = c(0.90, 0.22)} indicates targeting a 90\\% assurance that the CI width
+for the calibration slope will not exceed 0.22.
+\item For net benefit, targets include \code{oa.nb}, the Optimality Assurance value
+(e.g., \code{oa.nb = 0.9} for 90\\% assurance), and \code{voi.nb}, which is the ratio of
+the Expected Value of Sample Information (EVSI) to the Expected Value of Perfect
+Information (EVPI) (e.g., \code{voi.nb = 0.8}).
+}}
 
-\item{n_sim}{Number of simulations}
+\item{n_sim}{Number of Monte Carlo simulations.}
 
-\item{method}{Method to calculate pre-posterior distribution of 95\% confidence intervals. One of "sample", "2s"; default is "sample"}
+\item{method}{Method used to calculate the pre-posterior distribution of 95\\% confidence intervals.
+One of \code{"sample"} or \code{"2s"}; default is \code{"sample"}.}
 
-\item{threshold}{Threshold used for decision rules and NB calculations. Required if \code{voi.nb} or \code{oa.nb} are requested.}
+\item{threshold}{Threshold used for decision rules and net benefit calculations.
+Required if \code{voi.nb} or \code{oa.nb} are requested.}
 
-\item{dist_type}{Distribution for calibrated risks; default is "logitnorm"}
+\item{dist_type}{Distribution for calibrated risks; default is \code{"logitnorm"}.}
 
-\item{impute_cor}{Boolean value to induce correlation. Default is True}
+\item{impute_cor}{Logical value indicating whether correlation should be induced.
+Default is \code{TRUE}.}
 
-\item{ex_args}{List of extra arguments.}
+\item{ex_args}{A list of extra arguments.}
 }
 \value{
 A list containing:
-results: Estimated sample sizes needed to meet the targets.
-sample: Data frame of simulated samples
-evidence: Processed evidence object
-trace: Trace output from stochastic root finding method
-target: same as the corresponding input argument
+\itemize{
+\item \code{results}: Estimated sample sizes needed to meet the targets.
+\item \code{sample}: Data frame of simulated samples.
+\item \code{evidence}: Processed evidence object.
+\item \code{trace}: Trace output from the stochastic root-finding method.
+\item \code{targets}: Same as the corresponding input argument.
+}
 }
 \description{
-Bayesian sample size calculation for external validation studies of risk prediction models
+Bayesian sample size calculation for external validation studies of risk prediction models.
 }
 \examples{
 \donttest{
@@ -59,7 +77,7 @@ evidence <- list(
 
 targets <- list(
   eciw.cstat = 0.1,
-  qciw.cstat = c(0.1, 0.9),
+  qciw.cstat = c(0.9, 0.1),
   oa.nb = 0.8
 )
 
@@ -71,6 +89,6 @@ samp <- bpm_valsamp(
 )
 
 print(samp$results)
-
 }
+
 }

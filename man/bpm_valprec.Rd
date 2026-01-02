@@ -2,7 +2,7 @@
 % Please edit documentation in R/valprec.R
 \name{bpm_valprec}
 \alias{bpm_valprec}
-\title{Bayesian Precision/VoI Calculator}
+\title{Bayesian Precision / VoI Calculator}
 \usage{
 bpm_valprec(
   N,
@@ -17,40 +17,50 @@ bpm_valprec(
 )
 }
 \arguments{
-\item{N}{Numeric vector of sample sizes to evaluate}
+\item{N}{Numeric vector of sample sizes to evaluate.}
 
-\item{evidence}{A named list with prior evidence parameters}
+\item{evidence}{A named list with prior evidence parameters, or a
+Monte Carlo sample returned by \code{bpm_valsamp()}.}
 
-\item{targets}{A list of targets to compute:
-For expected precision width, the format is eciw.metric=TRUE/FALSE, e.g., eciw.cstat=TRUE will calculate the expected CI width around c-statistic at requested sample sizes.
-For assurance, the format is qciw.XXX=q, where q is the desired quantile. For example, qciw.cal_oe=0.9 returns the 90th percentile of CI width around O/E ratio.
-Currently implemented metrics are: cstat (c-statistics), cal_oe (observed/expected event ratio: E(Y)/E(pi)), cal_mean (mean calibration error: E(Y)-E(pi)), cal_int (calibration intercept), and cal_slp (calibration slope)
-For net benefit, targets are:
-oa.nb: if TRUE, will calculate the optimality assurance at requested sample sizes.
-voi.nb: if TRUE, will calculate the expected value of sample information (EVSI) at requested sample sizes.}
+\item{targets}{A named list of targets to compute.
+\describe{
+\item{eciw.metric}{Logical; compute expected CI width.}
+\item{qciw.metric}{Numeric scalar in (0,1); CI width quantile.}
+\item{oa.nb}{Logical; compute optimality assurance for net benefit.}
+\item{voi.nb}{Logical; compute EVSI and EVSI/EVPI.}
+}}
 
-\item{n_sim}{number of Monte Carlo simulations. Default is 1000}
+\item{n_sim}{Number of Monte Carlo simulations. Default is inferred
+from the supplied sample when possible.}
 
-\item{method}{method to calculate pre-posterior distribution of 95\% confidence intervals. One of "sample", "2s"; default is "sample"}
+\item{method}{Method to compute CI widths. One of \code{"sample"} or
+\code{"2s"}.}
 
-\item{threshold}{Threshold used for decision rules and NB calculations. Required if \code{voi.nb} or \code{assurance.nb} are requested.}
+\item{threshold}{Decision threshold for net benefit calculations.
+Required if \code{oa.nb} or \code{voi.nb} are requested.}
 
-\item{dist_type}{Distribution type for prevalence. Default is "logitnorm"}
+\item{dist_type}{Distribution for calibrated risks. Default is
+\code{"logitnorm"}.}
 
-\item{impute_cor}{Boolean value to induce correlation. Default is True}
+\item{impute_cor}{Logical; whether to induce correlation between
+parameters.}
 
-\item{ex_args}{List of extra arguments.}
+\item{ex_args}{Optional list of extra arguments. May include
+\code{f_progress}, a custom progress function.}
 }
 \value{
-A list containing:
-results: a matrix including the requested precision / voi metrics for each sample requested sample size.
-sample: The full Monte Carlo sample used in computations
-evidence: Processed evidence object
-targets: same as the corresponding input parameter
-ciws: a list containing simulated ciws for each requested metric
+A list with elements:
+\describe{
+\item{results}{Matrix of requested metrics by sample size.}
+\item{sample}{Monte Carlo sample used for computations.}
+\item{evidence}{Processed evidence object.}
+\item{targets}{Targets as supplied by the user.}
+\item{ciws}{Simulated CI widths for requested metrics.}
+}
 }
 \description{
-Bayesian Precision/VoI calculator for external validation studies of risk prediction models at a given sample size
+Bayesian precision and value-of-information calculator for external
+validation studies of risk prediction models at fixed sample sizes.
 }
 \examples{
 evidence <- list(

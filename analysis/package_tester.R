@@ -31,13 +31,13 @@ evidence3 <- list(
 targets_ss <- list(
   eciw.cstat = 0.1,
   eciw.cal_oe = 0.1,
-  qciw.cal_oe = c(0.15, 0.9),
+  qciw.cal_oe = c(0.9, 0.15),
   voi.nb = 0.9,
   oa.nb = 0.9
 )
 
 targets_prec <- list(
-  eciw.cstat = T,
+  eciw.cstat = F,
   eciw.cal_oe = T,
   qciw.cal_oe = c(0.9),
   oa.nb = T,
@@ -72,7 +72,7 @@ resp <- bpm_valprec(
   evidence = evidence_isaric,
   dist_type = dist_type,
   method = method,
-  targets = targets_prec,
+  targets = targets_ss,
   n_sim = n_sim,
   impute_cor = impute_cor,
   threshold = threshold

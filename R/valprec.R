@@ -1,29 +1,41 @@
-#'Bayesian Precision/VoI Calculator
+#' Bayesian Precision / VoI Calculator
 #'
-#'@description Bayesian Precision/VoI calculator for external validation studies of risk prediction models at a given sample size
+#' @description
+#' Bayesian precision and value-of-information calculator for external
+#' validation studies of risk prediction models at fixed sample sizes.
 #'
-#'@param N Numeric vector of sample sizes to evaluate
-#'@param evidence A named list with prior evidence parameters
-#'@param targets A list of targets to compute:
-#'  For expected precision width, the format is eciw.metric=TRUE/FALSE, e.g., eciw.cstat=TRUE will calculate the expected CI width around c-statistic at requested sample sizes.
-#'  For assurance, the format is qciw.XXX=q, where q is the desired quantile. For example, qciw.cal_oe=0.9 returns the 90th percentile of CI width around O/E ratio.
-#'  Currently implemented metrics are: cstat (c-statistics), cal_oe (observed/expected event ratio: E(Y)/E(pi)), cal_mean (mean calibration error: E(Y)-E(pi)), cal_int (calibration intercept), and cal_slp (calibration slope)
-#'  For net benefit, targets are:
-#'  oa.nb: if TRUE, will calculate the optimality assurance at requested sample sizes.
-#'  voi.nb: if TRUE, will calculate the expected value of sample information (EVSI) at requested sample sizes.
-#'@param n_sim number of Monte Carlo simulations. Default is 1000
-#'@param method method to calculate pre-posterior distribution of 95% confidence intervals. One of "sample", "2s"; default is "sample"
-#'@param threshold Threshold used for decision rules and NB calculations. Required if `voi.nb` or `assurance.nb` are requested.
-#'@param dist_type Distribution type for prevalence. Default is "logitnorm"
-#'@param impute_cor Boolean value to induce correlation. Default is True
-#'@param ex_args List of extra arguments.
-#'@return A list containing:
-#'   results: a matrix including the requested precision / voi metrics for each sample requested sample size.
-#'   sample: The full Monte Carlo sample used in computations
-#'   evidence: Processed evidence object
-#'   targets: same as the corresponding input parameter
-#'   ciws: a list containing simulated ciws for each requested metric
-#'@examples
+#' @param N Numeric vector of sample sizes to evaluate.
+#' @param evidence A named list with prior evidence parameters, or a
+#'   Monte Carlo sample returned by \code{bpm_valsamp()}.
+#' @param targets A named list of targets to compute.
+#'   \describe{
+#'     \item{eciw.metric}{Logical; compute expected CI width.}
+#'     \item{qciw.metric}{Numeric scalar in (0,1); CI width quantile.}
+#'     \item{oa.nb}{Logical; compute optimality assurance for net benefit.}
+#'     \item{voi.nb}{Logical; compute EVSI and EVSI/EVPI.}
+#'   }
+#' @param n_sim Number of Monte Carlo simulations. Default is inferred
+#'   from the supplied sample when possible.
+#' @param method Method to compute CI widths. One of \code{"sample"} or
+#'   \code{"2s"}.
+#' @param threshold Decision threshold for net benefit calculations.
+#'   Required if \code{oa.nb} or \code{voi.nb} are requested.
+#' @param dist_type Distribution for calibrated risks. Default is
+#'   \code{"logitnorm"}.
+#' @param impute_cor Logical; whether to induce correlation between
+#'   parameters.
+#' @param ex_args Optional list of extra arguments. May include
+#'   \code{f_progress}, a custom progress function.
+#'
+#' @return A list with elements:
+#' \describe{
+#'   \item{results}{Matrix of requested metrics by sample size.}
+#'   \item{sample}{Monte Carlo sample used for computations.}
+#'   \item{evidence}{Processed evidence object.}
+#'   \item{targets}{Targets as supplied by the user.}
+#'   \item{ciws}{Simulated CI widths for requested metrics.}
+#' }
+#' @examples
 #' evidence <- list(
 #'   prev = list(type = "beta", mean = 0.38, sd = 0.01),  # tight prior for stability
 #'   cstat = list(type="beta", mean = 0.7, sd = 0.05),
@@ -58,7 +70,54 @@ bpm_valprec <- function(
   tmp <- as.data.frame(lapply(names(targets), strsplit, "[.]"))
   target_rules <- unname(unlist(tmp[1, ]))
   target_metrics <- unname(unlist(tmp[2, ]))
-  target_values <- (targets)
+  target_values <- targets
+
+  #Process requested stuff. Mainly to remove those if the rule=F
+  to_remove <- c()
+  for (i in 1:length(target_values)) {
+    if (isFALSE(target_values[[i]])) {
+      to_remove <- c(to_remove, i)
+    }
+  }
+  if (length(to_remove) > 0) {
+    target_values <- target_values[-to_remove]
+    target_metrics <- target_metrics[-to_remove]
+    target_rules <- target_rules[-to_remove]
+  }
+
+  #Check for some basic validation
+  for (i in 1:length(target_values)) {
+    if (target_rules[i] == "eciw") {
+      if (
+        !target_metrics[i] %in%
+          c("cstat", "cal_mean", "cal_int", "cal_slp", "cal_oe")
+      ) {
+        stop(paste("Target metric", target_metrics[i], "not recognized."))
+      }
+      if (!isTRUE(target_values[[i]])) {
+        message(paste(
+          "For eciw rules, I expect TRUE or FALSE values. You have submitted ",
+          paste(target_values[[i]], collapse = ","),
+          ". I will take this as TRUE."
+        ))
+      }
+    }
+    if (target_rules[i] == "qciw") {
+      if (
+        !target_metrics[i] %in%
+          c("cstat", "cal_mean", "cal_int", "cal_slp", "cal_oe")
+      ) {
+        stop(paste("Target metric", target_metrics[i], "not recognized."))
+      }
+      if (length(target_values[[i]]) > 1) {
+        message(paste(
+          "For qciw rules, I expect one scalar value for the desired quantile. You have submitted",
+          paste(target_values[[i]], collapse = ","),
+          ". I will use the first element for quantile."
+        ))
+      }
+    }
+  }
 
   if (is.function(ex_args$f_progress)) {
     f_progress <- ex_args$f_progress
