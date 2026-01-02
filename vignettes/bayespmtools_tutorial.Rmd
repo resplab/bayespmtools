@@ -23,11 +23,11 @@ library(bayespmtools)
 
 Current sample size calculations for external validation of risk prediction models require researchers to specify fixed values of assumed model performance metrics alongside target precision levels. Using a Bayesian framework enables researchers to 1) include uncertainty in model performance in sample size calculations, 2) specify targets based on expected precision, assurance probabilities, and Value of Information (VoI).
 
-The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in <https://arxiv.org/pdf/2504.15923>.
+The BayesPMTools R package incorporates the implementation of our proposed Bayesian approach towards Riley's multi-criteria sample size calculations. Details of this approach are provided in @sadatsafavi2024: <https://arxiv.org/pdf/2504.15923>.
 
-The two core functions of this package are ***bpm_valsamp***, and ***bpm_valprec***. In general, ***bpm_valsamp*** is used for sample size calculations given a set of sample size rules, while ***bpm_valprec*** is used to quantify the precision (and VoI values) for a given set of sample sizes. 
+The two core functions of this package are ***bpm_valsamp***, and ***bpm_valprec***. In general, ***bpm_valsamp*** is used for sample size calculations given a set of sample size rules, while ***bpm_valprec*** is used in fixed designs: quantifying the anticipated precision for a given set of sample sizes. 
 
-In this tutorial, we use the ***bpm_valsamp*** function to determine sample size for an exemplary scenario, while using ***bpm_valprec*** to check the validity of the results and perform VoI analysis across sample size components.
+In this tutorial, we use the ***bpm_valsamp*** function to determine sample size for an exemplary scenario, while using ***bpm_valprec*** to 1) check the validity of the results and 2) perform VoI analysis to quantify the expected gain in net benefit  across sample size components.
 
 This tutorial assumes the BayesPMTools package is installed on your computer. Please refer to <https://github.com/resplab/bayespmtools> for more instructions on how to install and use this package.
 
@@ -39,18 +39,23 @@ set.seed(1)
 
 ### The ISARIC Model
 
-As a case study, we present sample size calculations for the ISARIC 4C model. This model is a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 @gupta2021isaric. The investigators used electronic hospital records from all 9 health regions of the UK to develop and validate this model. London was left out for external validation while the other 8 regions were used in creating the model.
+As a case study, we present sample size calculations for the ISARIC 4C model, a risk prediction model for predicting deterioration in patients hospitalized from COVID-19 @gupta2021isaric. The investigators used electronic hospital records from all 9 health regions of the UK to develop and validate this model. London was left out for external validation while the other 8 regions were used in creating the model. 
 
-We assume we plan to validate this model in the London region. Based on the exchangeability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK. This predictive distributions for various model performance metrics are provided in the full text of the paper.
+We assume we plan to validate this model in the London region. 
 
-### Specifying Evidence
+### Specifying Evidence (Uncertainty Quantification)
 
-The values in the evidence are extracted from a meta-analysis of the original report for the ISARIC 4C model, which produced these values based on predictive distribution of the internal-external validation results.
+The investigators used leave-one-region out cross validation to estimate out-pf-sample performance metrics of the model. We use this analysis as the source of evidence on model performance for the London region. Based on the exchangeability assumption, the performance of the model in the London region will be a random draw from the predictive distribution of performance metrics observed across the other 8 regions of the UK. 
 
-The Bayesian sample size calculation approach requires specifying prior distributions on 1) outcome prevalence, 2) c-statistic, 3) calibration slope, 4) one of calibration intercept, observed-to-expected (O/E) ratio, or mean calibration (difference between average observed and predicted risks - which is the one we use for this example). These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere @gupta2021isaric. Here, we directly use the predictive distributions from this meta-analysis.
+The Bayesian sample size calculation approach requires specifying prior distributions on 
+1) outcome prevalence (prev), 
+2) c-statistic (cstat), 
+3) calibration slope (cal_slp), 
+4) one of calibration intercept (cal_int), observed-to-expected (O/E) ratio (cal_oe), or mean calibration (cal_mean, difference between average observed and predicted risks - which is the one we use for this example). 
 
-Evidence can be specified in different ways. Perhaps the most straightforward is a list of R formulas, as below. 
+These distributions are derived from a meta-analysis of internal-external validation results from the original study. Details of this meta-analysis are provided elsewhere in @sadatsafavi2024. Here, we directly use the predictive distributions from this meta-analysis.
 
+Evidence can be specified in different ways. Perhaps the most straightforward is a list of R formulas, as below:
 
 ```{r load-evidence}
 evidence <- list(
@@ -61,10 +66,9 @@ evidence <- list(
   )
 ```
 
-Note the flexibility in specifying the parameters for distributions. For prevalence, we are parameterizing the Beta distribution by its mean and SD (which is internally mapped to the parameters of the Beta distribution); for c-statistic, we are using mean and the upper bound of 95% confidence intervals (i.e., 97.5th percentile). If parameters are not named, they are taken as the natural parameters for the distribution as defined in R, as in the last two components.
+Note the flexibility in specifying the parameters for distributions. For prevalence, we are parameterizing the Beta distribution by its mean and SD; for c-statistic, we are using mean and the upper bound of 95% confidence intervals (i.e., 97.5th percentile). These values are internally mapped to the parameters of their respective distribution. If parameters are not named, they are taken as the natural parameters for the distribution as defined in R, as in the last two components.
 
 Currently recognized distributions are norm (Normal), logitnorm (Logit-normal), probitnorm (Probit-normal), and beta (Beta). Note the flexibility in specifying the distributions. 
-
 
 ### Sample size targets and rules
 
