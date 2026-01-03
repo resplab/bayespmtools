@@ -34,7 +34,7 @@ This tutorial assumes the BayesPMTools package is installed on your computer. Pl
 
 ```{r set-seed}
 # Setting the random number seed for reproducibility
-set.seed(1)
+set.seed(123)
 ```
 
 ### The ISARIC Model

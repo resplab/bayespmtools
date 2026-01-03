@@ -1,0 +1,150 @@
+---
+title: "Getting Started with bayespmtools"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with bayespmtools}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bayespmtools)
+
+# Set seed for reproducibility
+set.seed(123)
+```
+
+## What is bayespmtools?
+
+The **bayespmtools** package helps you determine sample sizes for external validation studies of risk prediction models using a Bayesian approach. Unlike traditional methods that require fixed performance values, this package allows you to incorporate uncertainty about model performance into your calculations.
+
+## Why use a Bayesian approach?
+
+Traditional sample size calculations require you to specify exact values for metrics like the c-statistic or calibration slope. But in reality, we're uncertain about these values. The Bayesian approach in **bayespmtools** lets you:
+
+- Express uncertainty about model performance using probability distributions
+- Calculate sample sizes based on expected precision OR assurance levels
+- Incorporate Value of Information (VoI) analysis to assess clinical utility
+
+## Quick Example
+
+Let's walk through a simple example. Suppose you're planning to externally validate a risk prediction model and you have some prior information about its likely performance.
+
+### Step 1: Specify Your Evidence
+
+First, define what you know (or believe) about the model's performance using probability distributions:
+
+```{r}
+evidence <- list(
+  prev ~ beta(mean = 0.428, sd = 0.030),     # Outcome prevalence
+  cstat ~ beta(mean = 0.761, cih = 0.773),   # C-statistic
+  cal_mean ~ norm(-0.009, 0.125),            # Mean calibration error
+  cal_slp ~ norm(0.995, 0.024)               # Calibration slope
+)
+```
+
+**What this means:**
+
+- `prev`: Outcome prevalence
+- `cstat`: c-statistic (discrimination)
+- `cal_mean`: Mean calibration error (differences between average observed and expected risks)
+- `cal_slp`: Expected calibration slope (from a logistic model regressing observed outcome on logit-transformed predicted risks)
+
+You can parameterize distributions flexibly using means and SDs, confidence interval bounds, or natural parameters.
+
+### Step 2: Define Your Targets
+
+Next, specify what precision you want to achieve. We want to evaluate sample size size on three rules: 
+
+- Targeting expected 95% CI width for c-statistic, observed-to-expected outcome ratio (cal_oe), and calibration slope (cal_slp). 
+- Targeting 90% assurance on calibration slope. In particular, we want to be 90% confident that the calibration slope's CI width will be no greater a maximum tolerable value.
+- Using Value of Information (voI) criterion for net benefit: we want this validation study to reduce net benefit loss due to uncertainty by 90%.
+
+```{r}
+targets <- list(
+  eciw.cstat = 0.1,            # Expected CI width for c-statistic
+  eciw.cal_oe = 0.22,          # Expected CI width for O/E ratio
+  eciw.cal_slp = 0.30,         # Expected CI width for calibration slope
+  qciw.cal_slp = c(0.9, 0.35),  # 90% assurance that CI width ≤ 0.12
+  voi.nb = 0.90
+)
+```
+
+
+
+### Step 3: Calculate Sample Size
+
+Now run the main calculation:
+
+```{r eval=FALSE}
+results <- bpm_valsamp(
+  evidence = evidence,
+  targets = targets,
+  n_sim = 1000,           # Number of Monte Carlo simulations
+  threshold = 0.2         # Risk threshold for net benefit calculations
+)
+```
+
+NOTE: the number of simulations (n_sim) of 1,000 is  low and is used here for convenience. In practice, consider simulation sizes of at least 10,000 and consider stability of results using different random seed.
+
+```{r include=FALSE}
+# For vignette building speed, we'll use pre-computed results
+# In practice, run the code above
+results <- list(results = c(
+  eciw.cstat = 349,
+  eciw.cal_oe = 429,
+  eciw.cal_slp = 1035,
+  qciw.cal_slp = 901,
+  voi.nb = 717
+))
+```
+
+### Step 4: View Results
+
+```{r}
+print(results$results)
+```
+
+The output shows the required sample size for each criterion. The largest sample size (1035) ensures all targets are met. However, the VoI criterion indicates that a sample size of 717 is expected to reduce uncertainty-related clinical utility loss by 90%. This might be used to argue that, potentially, the criteria on calibration slope can be relaxed.
+
+## Next Steps
+
+For more advanced usage, see the full tutorial vignette:
+```{r eval=FALSE}
+vignette("bayespmtools_tutorial")
+```
+
+This covers:
+- Working with different distribution types
+- Net benefit and Value of Information analysis
+- Precision calculations for fixed sample sizes
+- A real-world case study
+
+## Key Functions
+
+- `bpm_valsamp()`: Calculate required sample size given targets
+- `bpm_valprec()`: Calculate precision/VoI given a fixed sample size
+
+## Getting Help
+
+For detailed documentation on any function:
+```{r eval=FALSE}
+?bpm_valsamp
+?bpm_valprec
+```
+
+Visit the package repository: https://github.com/resplab/bayespmtools
+
+## References
+
+For methodological details, see:
+
+Sadatsafavi M, et al. (2025). Bayesian sample size considerations for external validation of risk prediction models. *Statistics in Medicine*. doi:10.1002/sim.70389
+```
