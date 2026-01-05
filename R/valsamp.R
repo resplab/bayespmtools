@@ -78,11 +78,11 @@
 #' @examples
 #' \donttest{
 #' evidence <- list(
-#'  prev~beta(mean=0.428, sd=0.030),
-#'  cstat~beta(mean=0.761, cih=0.773),
-#'  cal_mean~norm(-0.009, 0.125),  #mean and SD
-#'  cal_slp~norm(0.995, 0.024)     #mean and SD
-#' )
+#'   prev ~ beta(116, 155),           # Outcome prevalence
+#'   cstat ~ beta(3628, 1139),        # C-statistic
+#'   cal_mean ~ norm(-0.009, 0.125),  # Mean calibration error
+#'   cal_slp ~ norm(0.995, 0.024)     # Calibration slope
+# )
 #'
 #' targets <- list(
 #'   eciw.cstat = 0.1,
@@ -173,138 +173,136 @@ bpm_valsamp <- function(
 
   ##Step 1: Process evidence
   if (!is.matrix(evidence) & !is.data.frame(evidence)) {
-  f_progress("Processing evidence...")
-  evidence <- process_evidence(evidence)
-  out$evidence <- evidence
+    f_progress("Processing evidence...")
+    evidence <- process_evidence(evidence)
+    out$evidence <- evidence
 
-  ##Generate base parms
-  base <- list()
-  base$dist_type <- dist_type
-  base$prev <- evidence$prev$moments[[1]]
-  base$cstat <- evidence$cstat$moments[[1]]
-  tmp <- mcmapper::mcmap(c(base$prev, base$cstat), type = dist_type)$valu
-  base$dist_parm1 <- tmp[1]
-  base$dist_parm2 <- tmp[2]
-  base$cal_slp <- evidence$cal_slp$moments[[1]]
-  #Cal intercept is not provided. Need to derive it for base params for correlation induction
-  if (is.na(match("cal_int", names(evidence)))) {
-    base$cal_int <- infer_cal_int_from_mean(
-      base$dist_type,
-      c(base$dist_parm1, base$dist_parm2),
-      cal_mean = evidence$cal_mean$moments[[1]],
-      cal_slp = base$cal_slp,
-      prev = base$prev
-    )
-  } else {
-    base$cal_int <- evidence$cal_int$moments[[1]]
-  }
-  
-  #Step 2: generate sample of marginals
-  f_progress("Generating Monte Carlo sample...")
-  sample <- NULL
-  for (element in evidence) {
-    sample <- cbind(
-      sample,
-      do.call(
-        paste0("r", element$type),
-        args = as.list(c(n = n_sim, element$parms))
+    ##Generate base parms
+    base <- list()
+    base$dist_type <- dist_type
+    base$prev <- evidence$prev$moments[[1]]
+    base$cstat <- evidence$cstat$moments[[1]]
+    tmp <- mcmapper::mcmap(c(base$prev, base$cstat), type = dist_type)$valu
+    base$dist_parm1 <- tmp[1]
+    base$dist_parm2 <- tmp[2]
+    base$cal_slp <- evidence$cal_slp$moments[[1]]
+    #Cal intercept is not provided. Need to derive it for base params for correlation induction
+    if (is.na(match("cal_int", names(evidence)))) {
+      base$cal_int <- infer_cal_int_from_mean(
+        base$dist_type,
+        c(base$dist_parm1, base$dist_parm2),
+        cal_mean = evidence$cal_mean$moments[[1]],
+        cal_slp = base$cal_slp,
+        prev = base$prev
       )
-    )
-  }
-  colnames(sample) <- names(evidence)
-
-  n_bads <- 0
-  repeat {
-    bads <- which(sample[, 'cstat'] < 0.51 | sample[, 'cstat'] > 0.99)
-    if (length(bads) == 0) {
-      break
+    } else {
+      base$cal_int <- evidence$cal_int$moments[[1]]
     }
-    n_bads <- n_bads + length(bads)
-    subsample <- NULL
+
+    #Step 2: generate sample of marginals
+    f_progress("Generating Monte Carlo sample...")
+    sample <- NULL
     for (element in evidence) {
-      subsample <- cbind(
-        subsample,
+      sample <- cbind(
+        sample,
         do.call(
           paste0("r", element$type),
-          args = as.list(c(n = length(bads), element$parms))
+          args = as.list(c(n = n_sim, element$parms))
         )
       )
     }
-    sample[bads, ] <- subsample
-  }
-  if (n_bads > 0) {
-    warning(paste(
-      "in step 'Generating MOnte Carlo sample' - ",
-      n_bads,
-      "observations were replaced due to bad value of c-statistic."
-    ))
-  }
+    colnames(sample) <- names(evidence)
 
-  #Step 3: induce correlation (if asked)
-  if (impute_cor) {
-    eff_n <- round(
-      evidence$prev$moments[[1]] *
-        (1 - evidence$prev$moments[[1]]) /
-        evidence$prev$moments[[2]],
-      0
-    )
-    f_progress(paste(
-      "Imputing correlation, based on effective sample size:",
-      eff_n,
-      "..."
-    ))
-    base_cor <- infer_correlation(
-      base$dist_type,
-      c(base$dist_parm1, base$dist_parm2),
-      base$cal_int,
-      base$cal_slp,
-      eff_n,
-      1000
-    )
-    good_rows <- match(colnames(sample), colnames(base_cor))
-    base_cor <- base_cor[good_rows, good_rows]
-    sample <- mc2d::cornode(sample, target = base_cor)
-  }
-
-  #Step 4: if intercept is missing, impute it for the whole sample
-  f_progress("Infering calibration intercept...")
-  sample <- as.data.frame(sample)
-  sample$dist_type <- dist_type
-  sample$dist_parm1 <- 0
-  sample$dist_parm2 <- 0
-
-  if (is.na(match("cal_int", names(evidence)))) {
-    sample$cal_int <- NA
-    for (i in 1:nrow(sample)) {
-      prev <- unname(sample[i, 'prev'])
-      cstat <- unname(sample[i, 'cstat'])
-      cal_mean <- unname(sample[i, 'cal_mean']) #TODO
-      cal_slp <- unname(sample[i, 'cal_slp'])
-
-      parms <- mcmap(c(prev, cstat), dist_type)$value
-      sample$dist_parm1[i] <- parms[1]
-      sample$dist_parm2[i] <- parms[2]
-
-      cal_int <- infer_cal_int_from_mean(
-        dist_type = dist_type,
-        dist_parms = parms,
-        cal_mean = cal_mean,
-        cal_slp = cal_slp,
-        prev = prev
-      )
-
-      sample[i, 'cal_int'] <- cal_int
+    n_bads <- 0
+    repeat {
+      bads <- which(sample[, 'cstat'] < 0.51 | sample[, 'cstat'] > 0.99)
+      if (length(bads) == 0) {
+        break
+      }
+      n_bads <- n_bads + length(bads)
+      subsample <- NULL
+      for (element in evidence) {
+        subsample <- cbind(
+          subsample,
+          do.call(
+            paste0("r", element$type),
+            args = as.list(c(n = length(bads), element$parms))
+          )
+        )
+      }
+      sample[bads, ] <- subsample
     }
-  }
-  }else
-  {
+    if (n_bads > 0) {
+      warning(paste(
+        "in step 'Generating MOnte Carlo sample' - ",
+        n_bads,
+        "observations were replaced due to bad value of c-statistic."
+      ))
+    }
+
+    #Step 3: induce correlation (if asked)
+    if (impute_cor) {
+      eff_n <- round(
+        evidence$prev$moments[[1]] *
+          (1 - evidence$prev$moments[[1]]) /
+          evidence$prev$moments[[2]],
+        0
+      )
+      f_progress(paste(
+        "Imputing correlation, based on effective sample size:",
+        eff_n,
+        "..."
+      ))
+      base_cor <- infer_correlation(
+        base$dist_type,
+        c(base$dist_parm1, base$dist_parm2),
+        base$cal_int,
+        base$cal_slp,
+        eff_n,
+        1000
+      )
+      good_rows <- match(colnames(sample), colnames(base_cor))
+      base_cor <- base_cor[good_rows, good_rows]
+      sample <- mc2d::cornode(sample, target = base_cor)
+    }
+
+    #Step 4: if intercept is missing, impute it for the whole sample
+    f_progress("Infering calibration intercept...")
+    sample <- as.data.frame(sample)
+    sample$dist_type <- dist_type
+    sample$dist_parm1 <- 0
+    sample$dist_parm2 <- 0
+
+    if (is.na(match("cal_int", names(evidence)))) {
+      sample$cal_int <- NA
+      for (i in 1:nrow(sample)) {
+        prev <- unname(sample[i, 'prev'])
+        cstat <- unname(sample[i, 'cstat'])
+        cal_mean <- unname(sample[i, 'cal_mean']) #TODO
+        cal_slp <- unname(sample[i, 'cal_slp'])
+
+        parms <- mcmap(c(prev, cstat), dist_type)$value
+        sample$dist_parm1[i] <- parms[1]
+        sample$dist_parm2[i] <- parms[2]
+
+        cal_int <- infer_cal_int_from_mean(
+          dist_type = dist_type,
+          dist_parms = parms,
+          cal_mean = cal_mean,
+          cal_slp = cal_slp,
+          prev = prev
+        )
+
+        sample[i, 'cal_int'] <- cal_int
+      }
+    }
+  } else {
     sample <- evidence
     base <- as.data.frame(t(colMeans(sample[, which(
       colnames(sample) != "dist_type"
     )])))
     base$dist_type <- sample[1, 'dist_type']
   }
-  
 
   # Step 5: Bayesian Riley
   f_progress("Computing CI sample size...")

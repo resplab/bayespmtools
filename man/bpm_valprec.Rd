@@ -69,11 +69,10 @@ validation studies of risk prediction models at fixed sample sizes.
 }
 \examples{
 evidence <- list(
- prev~beta(mean=0.428, sd=0.030),
- cstat~beta(mean=0.761, cih=0.773),
- cal_mean~norm(-0.009, 0.125),  #mean and SD
- cal_slp~norm(0.995, 0.024)     #mean and SD
-)
+  prev ~ beta(116, 155),           # Outcome prevalence
+  cstat ~ beta(3628, 1139),        # C-statistic
+  cal_mean ~ norm(-0.009, 0.125),  # Mean calibration error
+  cal_slp ~ norm(0.995, 0.024)     # Calibration slope
 
 res <- bpm_valprec(
   N = c(1000, 1500),
