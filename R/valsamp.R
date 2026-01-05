@@ -172,6 +172,7 @@ bpm_valsamp <- function(
   }
 
   ##Step 1: Process evidence
+  if (!is.matrix(evidence) & !is.data.frame(evidence)) {
   f_progress("Processing evidence...")
   evidence <- process_evidence(evidence)
   out$evidence <- evidence
@@ -197,7 +198,7 @@ bpm_valsamp <- function(
   } else {
     base$cal_int <- evidence$cal_int$moments[[1]]
   }
-
+  
   #Step 2: generate sample of marginals
   f_progress("Generating Monte Carlo sample...")
   sample <- NULL
@@ -295,6 +296,15 @@ bpm_valsamp <- function(
       sample[i, 'cal_int'] <- cal_int
     }
   }
+  }else
+  {
+    sample <- evidence
+    base <- as.data.frame(t(colMeans(sample[, which(
+      colnames(sample) != "dist_type"
+    )])))
+    base$dist_type <- sample[1, 'dist_type']
+  }
+  
 
   # Step 5: Bayesian Riley
   f_progress("Computing CI sample size...")

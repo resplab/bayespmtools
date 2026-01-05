@@ -434,7 +434,6 @@ bpm_valprec <- function(
 
   rownames(df) <- N
   out$results <- as.matrix(df)
-
   out$sample <- sample
   out
 }
