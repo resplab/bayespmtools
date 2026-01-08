@@ -18,39 +18,41 @@ knitr::opts_chunk$set(
 
 The goal of Bayespmtools is to enable Bayesian sample size and precision calculations for external validation of risk prediction models.
 
-For the details of the methodology, please refer to the accompanying paper: https://arxiv.org/abs/2504.15923
+For the details of the methodology, please refer to the accompanying paper: https://doi.org/10.1002/sim.70389
 
 
 ```{r cars}
 #Specify evidence:
 evidence <- list(
-  prev=list(type="beta", mean=0.427966984132821, sd=0.0295397309129426),
-  cstat=list(type="logitnorm", mean=0.760628336908955, sd=0.00635806041351944),
-  cal_mean=list(type="norm", mean=-0.00934717199436785, sd=0.124517605045825),
-  cal_slp=list(type="norm", mean=0.995017759715243, sd = 0.0237278675967507))
+  prev ~ beta(116, 155),           # Outcome prevalence
+  cstat ~ beta(3628, 1139),        # C-statistic
+  cal_mean ~ norm(-0.009, 0.125),  # Mean calibration error
+  cal_slp ~ norm(0.995, 0.024)     # Calibration slope
+)
 
 #Specifying targets
 #eciw=x indicates desired expected CI Width of x.
-#qciw=c(a,b) indicates desired assurance CI Width of x at assurance level y.
-targets <- list(eciw.cstat=0.1,
-  eciw.cal_oe=0.22,
-  eciw.cal_slp=0.30,
-  qciw.cstat=c(0.1, 0.9),
-  qciw.cal_oe=c(0.22, 0.9),
-  qciw.cal_slp=c(0.30,0.9),
-  assurance.nb=0.9)
+#qciw=c(a,b) indicates desired assurance CI Width of b at assurance level a.
+#voi.nb indicates targeting a given EVSI/EVPI ratio
+targets <- list(
+  eciw.cstat = 0.1,             # Expected CI width for c-statistic
+  eciw.cal_oe = 0.22,           # Expected CI width for O/E ratio
+  eciw.cal_slp = 0.30,          # Expected CI width for calibration slope
+  qciw.cal_slp = c(0.90, 0.35),  # 90% assurance that CI width ≤ 0.35
+  voi.nb = 0.90
+)
 
 library(bayespmtools)
 
 #Main function call
-res <- bpm_valsamp(evidence=evidence, #Evidence as a list
-  dist_type="logitnorm", #Distribution type for calibrated risks
-  method="sample", #Sample based or tw-level ("2s") method
-  targets=targets, #Targets (as specified above)
-  n_sim=100, #Number of Monte Carlo simulations
-  threshold=0.2) #Risk threshold for NB VoI calculations
+res <- bpm_valsamp(
+  evidence = evidence,
+  targets = targets,
+  n_sim = 1000,           # Number of Monte Carlo simulations
+  threshold = 0.2         # Risk threshold for net benefit calculations
+)
 
-print(res$N)
+print(res$results)
 ```
 
 

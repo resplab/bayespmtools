@@ -90,7 +90,7 @@ targets_samp <- list(eciw.cstat=0.1,
                 qciw.cstat=c(0.9, 0.1),
                 qciw.cal_oe=c(0.9, 0.22),
                 qciw.cal_slp=c(0.9, 0.30),
-                oa.nb=0.9)
+                oa.nb=0.90)
 ```
 
 ### Sample size calculator (*bpm_valsamp*())

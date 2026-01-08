@@ -90,6 +90,7 @@ evidence <- list(
   cstat ~ beta(3628, 1139),        # C-statistic
   cal_mean ~ norm(-0.009, 0.125),  # Mean calibration error
   cal_slp ~ norm(0.995, 0.024)     # Calibration slope
+)
 
 targets <- list(
   eciw.cstat = 0.1,
