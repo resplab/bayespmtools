@@ -30,8 +30,8 @@ targets <- list(
   eciw.cstat = 0.1,             # Expected CI width for c-statistic
   eciw.cal_oe = 0.22,           # Expected CI width for O/E ratio
   eciw.cal_slp = 0.30,          # Expected CI width for calibration slope
-  qciw.cal_slp = c(0.90, 0.35),  # 90% assurance that CI width ≤ 0.35
-  voi.nb = 0.90
+  qciw.cal_slp = c(0.90, 0.35), # Quantile of CI width for calibration slope (assurance)
+  voi.nb = 0.90                 # EVSI/EVPI ratio
 )
 
 library(bayespmtools)
@@ -53,5 +53,5 @@ res <- bpm_valsamp(
 
 print(res$results)
 #>   eciw.cstat  eciw.cal_oe eciw.cal_slp qciw.cal_slp       voi.nb 
-#>          342          408         1067          869          717
+#>          360          392         1037          873          717
 ```
