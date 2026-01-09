@@ -53,5 +53,5 @@ res <- bpm_valsamp(
 
 print(res$results)
 #>   eciw.cstat  eciw.cal_oe eciw.cal_slp qciw.cal_slp       voi.nb 
-#>          360          392         1037          873          717
+#>          361          420         1072          870          717
 ```
