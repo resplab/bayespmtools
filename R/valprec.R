@@ -249,8 +249,14 @@ bpm_valprec <- function(
     base$dist_type <- sample[1, 'dist_type']
   }
 
-  #Step 4: if intercept is missing, impute it for the whole sample
-  f_progress("Infering calibration intercept...")
+  #Step 4: Estimating the distribution parameters of predicted risks
+  f_progress("Estimating the distribution parameters of predicted risks...")
+
+  need_int <- FALSE
+  if (is.na(match("cal_int", colnames(sample)))) {
+    need_int <- TRUE
+    sample$cal_int <- NA
+  }
 
   for (i in 1:nrow(sample)) {
     prev <- unname(sample[i, 'prev'])
@@ -259,8 +265,7 @@ bpm_valprec <- function(
     sample$dist_parm1[i] <- parms[1]
     sample$dist_parm2[i] <- parms[2]
 
-    if (is.na(match("cal_int", colnames(sample)))) {
-      sample$cal_int <- NA
+    if (need_int) {
       cal_slp <- unname(sample[i, 'cal_slp'])
       if (!is.na(match("cal_mean", colnames(sample)))) {
         cal_mean <- unname(sample[i, 'cal_mean'])
