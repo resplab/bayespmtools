@@ -148,13 +148,23 @@ bpm_valprec <- function(
     base$cal_slp <- evidence$cal_slp$moments[[1]]
     #Cal intercept is not provided. Need to derive it for base params for correlation induction
     if (is.na(match("cal_int", names(evidence)))) {
-      base$cal_int <- infer_cal_int_from_mean(
-        base$dist_type,
-        c(base$dist_parm1, base$dist_parm2),
-        cal_mean = evidence$cal_mean$moments[[1]],
-        cal_slp = base$cal_slp,
-        prev = base$prev
-      )
+      if (!is.na(match("cal_mean", names(evidence)))) {
+        base$cal_int <- infer_cal_int_from_mean(
+          base$dist_type,
+          c(base$dist_parm1, base$dist_parm2),
+          cal_mean = evidence$cal_mean$moments[[1]],
+          cal_slp = base$cal_slp,
+          prev = base$prev
+        )
+      } else {
+        base$cal_int <- infer_cal_int_from_oe(
+          base$dist_type,
+          c(base$dist_parm1, base$dist_parm2),
+          cal_oe = evidence$cal_oe$moments[[1]],
+          cal_slp = base$cal_slp,
+          prev = base$prev
+        )
+      }
     } else {
       base$cal_int <- evidence$cal_int$moments[[1]]
     }
@@ -242,26 +252,35 @@ bpm_valprec <- function(
   #Step 4: if intercept is missing, impute it for the whole sample
   f_progress("Infering calibration intercept...")
 
-  if (is.na(match("cal_int", colnames(sample)))) {
-    sample$cal_int <- NA
-    for (i in 1:nrow(sample)) {
-      prev <- unname(sample[i, 'prev'])
-      cstat <- unname(sample[i, 'cstat'])
-      cal_mean <- unname(sample[i, 'cal_mean']) #TODO
+  for (i in 1:nrow(sample)) {
+    prev <- unname(sample[i, 'prev'])
+    cstat <- unname(sample[i, 'cstat'])
+    parms <- mcmap(c(prev, cstat), dist_type)$value
+    sample$dist_parm1[i] <- parms[1]
+    sample$dist_parm2[i] <- parms[2]
+
+    if (is.na(match("cal_int", colnames(sample)))) {
+      sample$cal_int <- NA
       cal_slp <- unname(sample[i, 'cal_slp'])
-
-      parms <- mcmap(c(prev, cstat), dist_type)$value
-      sample$dist_parm1[i] <- parms[1]
-      sample$dist_parm2[i] <- parms[2]
-
-      cal_int <- infer_cal_int_from_mean(
-        dist_type = dist_type,
-        dist_parms = parms,
-        cal_mean = cal_mean,
-        cal_slp = cal_slp,
-        prev = prev
-      )
-
+      if (!is.na(match("cal_mean", colnames(sample)))) {
+        cal_mean <- unname(sample[i, 'cal_mean'])
+        cal_int <- infer_cal_int_from_mean(
+          dist_type = dist_type,
+          dist_parms = parms,
+          cal_mean = cal_mean,
+          cal_slp = cal_slp,
+          prev = prev
+        )
+      } else {
+        cal_oe <- unname(sample[i, 'cal_oe'])
+        cal_int <- infer_cal_int_from_oe(
+          dist_type = dist_type,
+          dist_parms = parms,
+          cal_oe = cal_oe,
+          cal_slp = cal_slp,
+          prev = prev
+        )
+      }
       sample[i, 'cal_int'] <- cal_int
     }
   }

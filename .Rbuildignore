@@ -8,3 +8,5 @@
 ^cran-comments\.md$
 ^doc$
 ^Meta$
+^\.positai$
+^\.claude$

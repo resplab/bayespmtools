@@ -1,48 +1,45 @@
 #' @export
 summary.bpm_evidence <- function(object, ..., digits = getOption("digits")) {
   stopifnot(inherits(object, "bpm_evidence"))
-  
+
   tab <- data.frame(
-    component  = names(object),
-    type       = character(length(object)),
+    component = names(object),
+    type = character(length(object)),
     parameter1 = double(length(object)),
     parameter2 = double(length(object)),
-    mean       = double(length(object)),
-    variance   = double(length(object)),
+    mean = double(length(object)),
+    variance = double(length(object)),
     stringsAsFactors = FALSE
   )
-  
+
   for (i in seq_along(object)) {
-    tab$type[i]       <- object[[i]]$type
+    tab$type[i] <- object[[i]]$type
     tab$parameter1[i] <- object[[i]]$parms[1]
     tab$parameter2[i] <- object[[i]]$parms[2]
-    tab$mean[i]       <- object[[i]]$moments[1]
-    tab$variance[i]   <- object[[i]]$moments[2]
+    tab$mean[i] <- object[[i]]$moments[1]
+    tab$variance[i] <- object[[i]]$moments[2]
   }
-  
+
   class(tab) <- c("summary.bpm_evidence", "data.frame")
   tab
 }
-
-
 
 
 #' @export
 print.summary.bpm_evidence <- function(x, ..., digits = getOption("digits")) {
   cat("Summary of BPM evidence\n")
   cat("-----------------------\n\n")
-  
+
   tab <- x
   tab$parameter1 <- round(tab$parameter1, digits)
   tab$parameter2 <- round(tab$parameter2, digits)
-  tab$mean       <- round(tab$mean, digits)
-  tab$variance   <- round(tab$variance, digits)
-    
+  tab$mean <- round(tab$mean, digits)
+  tab$variance <- round(tab$variance, digits)
+
   print.data.frame(tab, row.names = FALSE)
-    
+
   invisible(x)
 }
-
 
 
 #'Transforms Evidence Into Standardized Format
@@ -212,7 +209,7 @@ process_evidence_element <- function(element) {
       e$moments <- moments("beta", e$parms)
     }
     if (e$type == "logitnorm") {
-      e$parms <- c(mean = element[[1]], sd = element[[2]])
+      e$parms <- c(mu = element[[1]], sigma = element[[2]])
       e$moments <- moments("logitnorm", e$parms)
     }
     if (e$type == "probitnorm") {
