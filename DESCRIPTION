@@ -1,12 +1,14 @@
 Package: bayespmtools
 Title: Bayesian Sample Size and Precision Considerations for Risk Prediction Models
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     c(person(given="Mohsen", family="Sadatsafavi", email="mohsen.sadatsafavi@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0419-7862")), 
       person(given="Anna", family="Luo", email="aannaluo@gmail.com", role="ctb"))
 Maintainer: Mohsen Sadatsafavi <mohsen.sadatsafavi@ubc.ca>
-Description: Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2025) <doi:10.1002/sim.70389>.
+Description: Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2026) <doi:10.1002/sim.70389>.
+URL: https://github.com/resplab/bayespmtools
+BugReports: https://github.com/resplab/bayespmtools/issues
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -15,9 +17,11 @@ Depends:
 Imports:
     fastLogisticRegressionWrap, logitnorm, mc2d, mcmapper, pROC, cobs, OOR, quantreg
 LazyData: true
-Suggests: 
+Suggests:
     knitr,
     rmarkdown,
-    ggplot2
+    ggplot2,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0

@@ -7,23 +7,71 @@
 process_evidence(evidence)
 }
 \arguments{
-\item{evidence}{named list of evidence elements including:
-prev: prevalence
-cstat: c-statistic
-cal_slp: calibration slope and,
-one of cal_mean (mean calibration), cal_oe (observed to expected ratio), or cal_int (calibration intercept)}
+\item{evidence}{A named list of evidence elements. The required members are:
+\itemize{
+\item \code{prev}: outcome prevalence (defaults to a \code{beta} distribution),
+\item \code{cstat}: c-statistic (defaults to a \code{beta} distribution),
+\item \code{cal_slp}: calibration slope (defaults to \code{norm}), and
+\item exactly one of \code{cal_mean} (mean calibration), \code{cal_oe}
+(observed-to-expected ratio), or \code{cal_int} (calibration intercept),
+each defaulting to \code{norm}.
+}
+
+Each element may be given either as a formula, \code{name ~ dist(par1, par2)}, or
+as a named list, \code{name = list(type = "dist", ...)}. The supported
+distributions (\code{type}) are \code{"norm"}, \code{"beta"}, \code{"logitnorm"}, and
+\code{"probitnorm"}.}
 }
 \value{
-Modified evidence object that has been standardized and restructured
+A \code{bpm_evidence} object: the standardized, restructured evidence list.
 }
 \description{
-Verifies evidence object has correct members, and standardizes it
+Verifies that an evidence object has the required members and standardizes it
+into a \code{bpm_evidence} object. Each element's distribution is recorded together
+with both its native parameters (\verb{$parms}) and its first two moments
+(\verb{$moments}, named \code{m} and \code{v}).
+}
+\details{
+The two parameters of each element may be characterized flexibly, as either
+native distribution parameters or summary moments. The parameters must be
+\strong{either all unnamed or all named} (a mix such as \code{beta(0.4, var = 0.04)} is
+ambiguous and raises an error).
+
+\strong{Unnamed (positional)} parameters are taken as the native parameters of the
+distribution:
+\itemize{
+\item \code{norm(mean, sd)},
+\item \code{beta(shape1, shape2)},
+\item \code{logitnorm(mu, sigma)},
+\item \code{probitnorm(mu, sigma)}.
+}
+
+\strong{Named} parameters are matched against the following aliases (pick one pair
+per element):
+\itemize{
+\item moments with a variance: \code{mean}/\code{var} (or \code{m}/\code{v}),
+\item moments with a standard deviation: \code{mean}/\code{sd} (or \code{m}/\code{sd}),
+\item a mean and an upper 97.5\\% quantile bound: \code{mean}/\code{cih} (or \code{m}/\code{cih}),
+\item native \code{beta} parameters: \code{alpha}/\code{beta},
+\item native \code{logitnorm}/\code{probitnorm} parameters: \code{mu}/\code{sigma}.
+}
+When moments are supplied, the native parameters are obtained by the method of
+moments (or, for \code{cih}, by matching the requested quantile).
 }
 \examples{
+# Formula form, mixing native parameters and moments:
 evidence <- list(
-prev=list(type="beta", mean=0.38, sd=0.2),
-cstat=list(mean=0.7, sd=0.05),
-cal_int=list(mean=0.2, sd=0.2),
-cal_slp=list(mean=0.8, sd=0.3))
+ prev     ~ beta(116, 155),       # native beta parameters
+ cstat    ~ beta(mean = 0.76, sd = 0.006),
+ cal_mean ~ norm(-0.009, 0.125),
+ cal_slp  ~ norm(0.995, 0.024))
+process_evidence(evidence = evidence)
+
+# Equivalent named-list form:
+evidence <- list(
+ prev=list(type="beta", mean=0.38, sd=0.2),
+ cstat=list(mean=0.7, sd=0.05),
+ cal_int=list(mean=0.2, sd=0.2),
+ cal_slp=list(mean=0.8, sd=0.3))
 process_evidence(evidence=evidence)
 }

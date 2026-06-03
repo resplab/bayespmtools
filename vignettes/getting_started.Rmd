@@ -146,5 +146,5 @@ Visit the package repository: https://github.com/resplab/bayespmtools
 
 For methodological details, see:
 
-Sadatsafavi M, et al. (2025). Bayesian sample size considerations for external validation of risk prediction models. *Statistics in Medicine*. doi:10.1002/sim.70389
+Sadatsafavi M, et al. (2026). Bayesian sample size considerations for external validation of risk prediction models. *Statistics in Medicine*. doi:10.1002/sim.70389
 ```

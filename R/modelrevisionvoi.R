@@ -13,7 +13,7 @@
 #     f_progress <- base::message
 #   }
 #
-#   f_progress("VoI and NB assuraance for model revision...")
+#   f_progress("VoI and NB assurance for model revision...")
 #
 #   enb1 <- sample$prev *
 #     sample$se -

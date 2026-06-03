@@ -6,7 +6,15 @@
 \alias{bayespmtools-package}
 \title{bayespmtools: Bayesian Sample Size and Precision Considerations for Risk Prediction Models}
 \description{
-Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2025) \doi{10.1002/sim.70389}.
+Performs Bayesian sample size, precision, and value-of-information analysis for external validation of existing multi-variable prediction models using the approach proposed by Sadatsafavi and colleagues (2026) \doi{10.1002/sim.70389}.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/resplab/bayespmtools}
+  \item Report bugs at \url{https://github.com/resplab/bayespmtools/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Mohsen Sadatsafavi \email{mohsen.sadatsafavi@ubc.ca} (\href{https://orcid.org/0000-0002-0419-7862}{ORCID})

@@ -205,7 +205,7 @@ bpm_valprec <- function(
     }
     if (n_bads > 0) {
       warning(paste(
-        "in step 'Generating MOnte Carlo sample' - ",
+        "in step 'Generating Monte Carlo sample' - ",
         n_bads,
         "observations were replaced due to bad value of c-statistic."
       ))
@@ -366,7 +366,7 @@ bpm_valprec <- function(
     }
 
     #Step 7: VoI
-    f_progress("VoI and NB assuraance...")
+    f_progress("VoI and NB assurance...")
 
     #require(evsiexval)
     #res <- evsiexval::EVSI_gf(sample[,c('prev','se','sp')], future_sample_sizes=N,  ignore_prior=TRUE, z=threshold)

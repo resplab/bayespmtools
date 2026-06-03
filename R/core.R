@@ -5,6 +5,20 @@ expit <- function(x) {
   1 / (1 + exp(-x))
 }
 
+# Quantile function for the distributions used to describe evidence elements.
+# `parms` are the native parameters of `type` (norm: mean, sd; beta: shape1,
+# shape2; logit-/probit-normal: mu, sigma). Returns the p-th quantile(s).
+dist_quantile <- function(type, parms, p) {
+  switch(
+    type,
+    norm = qnorm(p, parms[[1]], parms[[2]]),
+    beta = qbeta(p, parms[[1]], parms[[2]]),
+    logitnorm = expit(parms[[1]] + parms[[2]] * qnorm(p)),
+    probitnorm = pnorm(parms[[1]] + parms[[2]] * qnorm(p)),
+    rep(NA_real_, length(p))
+  )
+}
+
 #' Mean and Variance Calculator
 #'
 #' @description Calculates the first two moments (mean and variance) of the given model type and parameters.
@@ -187,7 +201,9 @@ calc_cstat <- function(type, parms, m = NULL) {
   #For now we assume we know m
   if (type == "logitnorm") {
     if (is.null(m)) {
-      m <- mcmapper:::elogitnorm(parms[1], parms[2])
+      # Mean of the logit-normal; equivalent to mcmapper:::elogitnorm() but
+      # using the exported logitnorm::momentsLogitnorm() (already imported).
+      m <- momentsLogitnorm(parms[1], parms[2])[[1]]
     }
     C <- (1 -
       integrate(
@@ -518,8 +534,8 @@ infer_correlation <- function(
   # require(pROC)
   # require(mcmapper)
 
-  out <- matrix(NA, nrow = n_sim, ncol = 5)
-  colnames(out) <- c("prev", "cstat", "cal_mean", "cal_int", "cal_slp")
+  out <- matrix(NA, nrow = n_sim, ncol = 6)
+  colnames(out) <- c("prev", "cstat", "cal_mean", "cal_oe", "cal_int", "cal_slp")
 
   for (i in 1:n_sim) {
     p <- do.call(
@@ -530,9 +546,10 @@ infer_correlation <- function(
     pi <- expit((logit(p) - cal_int) / cal_slp)
     df <- cbind(pi = pi, Y = Y)
     out[i, ] <- c(
-      mean(df[2]),
+      mean(df[, 2]),                    # prev: observed prevalence = mean(Y)
       pROC::roc(df[, 2] ~ df[, 1], quiet = TRUE)$auc,
-      mean(df[2] - df[1]),
+      mean(df[, 2] - df[, 1]),          # cal_mean: mean calibration = mean(Y - pi)
+      mean(df[, 2]) / mean(df[, 1]),    # cal_oe: O/E ratio = mean(Y) / mean(pi)
       coef(glm(df[, 2] ~ logit(df[, 1]), family = binomial(link = "logit")))[
         1:2
       ]
@@ -1297,7 +1314,7 @@ plot_cal_instability <- function(
     out[1, ],
     ylim = ylim,
     xlab = "Simulated predicted risks",
-    ylab = "Simulated observede risks",
+    ylab = "Simulated observed risks",
     type = 'l',
     col = 'grey'
   )

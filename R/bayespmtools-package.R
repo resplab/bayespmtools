@@ -12,6 +12,6 @@
 #' @import cobs
 #' @import quantreg
 #' @importFrom graphics lines
-#' @importFrom stats binomial coef cor dbeta glm integrate optim pbeta pnorm predict qnorm quantile rbeta rbinom rnorm t.test uniroot loess
+#' @importFrom stats binomial coef cor dbeta glm integrate optim pbeta pnorm predict qbeta qnorm quantile rbeta rbinom rnorm t.test uniroot loess
 ## usethis namespace: end
 NULL

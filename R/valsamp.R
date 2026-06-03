@@ -188,13 +188,23 @@ bpm_valsamp <- function(
     base$cal_slp <- evidence$cal_slp$moments[[1]]
     #Cal intercept is not provided. Need to derive it for base params for correlation induction
     if (is.na(match("cal_int", names(evidence)))) {
-      base$cal_int <- infer_cal_int_from_mean(
-        base$dist_type,
-        c(base$dist_parm1, base$dist_parm2),
-        cal_mean = evidence$cal_mean$moments[[1]],
-        cal_slp = base$cal_slp,
-        prev = base$prev
-      )
+      if (!is.na(match("cal_mean", names(evidence)))) {
+        base$cal_int <- infer_cal_int_from_mean(
+          base$dist_type,
+          c(base$dist_parm1, base$dist_parm2),
+          cal_mean = evidence$cal_mean$moments[[1]],
+          cal_slp = base$cal_slp,
+          prev = base$prev
+        )
+      } else {
+        base$cal_int <- infer_cal_int_from_oe(
+          base$dist_type,
+          c(base$dist_parm1, base$dist_parm2),
+          cal_oe = evidence$cal_oe$moments[[1]],
+          cal_slp = base$cal_slp,
+          prev = base$prev
+        )
+      }
     } else {
       base$cal_int <- evidence$cal_int$moments[[1]]
     }
@@ -234,7 +244,7 @@ bpm_valsamp <- function(
     }
     if (n_bads > 0) {
       warning(paste(
-        "in step 'Generating MOnte Carlo sample' - ",
+        "in step 'Generating Monte Carlo sample' - ",
         n_bads,
         "observations were replaced due to bad value of c-statistic."
       ))
@@ -267,31 +277,41 @@ bpm_valsamp <- function(
     }
 
     #Step 4: if intercept is missing, impute it for the whole sample
-    f_progress("Infering calibration intercept...")
+    f_progress("Inferring calibration intercept...")
     sample <- as.data.frame(sample)
     sample$dist_type <- dist_type
     sample$dist_parm1 <- 0
     sample$dist_parm2 <- 0
 
     if (is.na(match("cal_int", names(evidence)))) {
+      have_cal_mean <- !is.na(match("cal_mean", colnames(sample)))
       sample$cal_int <- NA
       for (i in 1:nrow(sample)) {
         prev <- unname(sample[i, 'prev'])
         cstat <- unname(sample[i, 'cstat'])
-        cal_mean <- unname(sample[i, 'cal_mean']) #TODO
         cal_slp <- unname(sample[i, 'cal_slp'])
 
         parms <- mcmap(c(prev, cstat), dist_type)$value
         sample$dist_parm1[i] <- parms[1]
         sample$dist_parm2[i] <- parms[2]
 
-        cal_int <- infer_cal_int_from_mean(
-          dist_type = dist_type,
-          dist_parms = parms,
-          cal_mean = cal_mean,
-          cal_slp = cal_slp,
-          prev = prev
-        )
+        if (have_cal_mean) {
+          cal_int <- infer_cal_int_from_mean(
+            dist_type = dist_type,
+            dist_parms = parms,
+            cal_mean = unname(sample[i, 'cal_mean']),
+            cal_slp = cal_slp,
+            prev = prev
+          )
+        } else {
+          cal_int <- infer_cal_int_from_oe(
+            dist_type = dist_type,
+            dist_parms = parms,
+            cal_oe = unname(sample[i, 'cal_oe']),
+            cal_slp = cal_slp,
+            prev = prev
+          )
+        }
 
         sample[i, 'cal_int'] <- cal_int
       }
@@ -354,7 +374,7 @@ bpm_valsamp <- function(
       sample[i, c('se', 'sp')] <- se_sp
     }
 
-    f_progress("VoI / NB assuraance...")
+    f_progress("VoI / NB assurance...")
 
     #require(evsiexval)
     #res <- evsiexval::EVSI_gf(sample[,c('prev','se','sp')], future_sample_sizes=N,  ignore_prior=TRUE, z=threshold)

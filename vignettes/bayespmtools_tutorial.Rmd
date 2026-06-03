@@ -68,7 +68,19 @@ evidence <- list(
 
 Note the flexibility in specifying the parameters for distributions. For prevalence, we are parameterizing the Beta distribution by its mean and SD; for c-statistic, we are using mean and the upper bound of 95% confidence intervals (i.e., 97.5th percentile). These values are internally mapped to the parameters of their respective distribution. If parameters are not named, they are taken as the natural parameters for the distribution as defined in R, as in the last two components.
 
-Currently recognized distributions are norm (Normal), logitnorm (Logit-normal), probitnorm (Probit-normal), and beta (Beta). Note the flexibility in specifying the distributions. 
+Currently recognized distributions are norm (Normal), logitnorm (Logit-normal), probitnorm (Probit-normal), and beta (Beta). Note the flexibility in specifying the distributions.
+
+Because parameters can be entered in several different ways, it is good practice to verify that the evidence has been interpreted as intended before running a calculation. Calling `process_evidence()` on the evidence list returns a standardized object that, when printed, shows the distribution, native parameters, and implied mean and variance of each component:
+
+```{r inspect-evidence}
+process_evidence(evidence)
+```
+
+The `summary()` method returns the same information as a data frame and additionally reports the 95% range (2.5th and 97.5th percentiles) of each component, which is a convenient sanity check on the specified uncertainty:
+
+```{r summarise-evidence}
+summary(process_evidence(evidence))
+```
 
 ### Sample size targets and rules
 
